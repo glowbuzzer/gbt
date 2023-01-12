@@ -1,0 +1,9 @@
+# Add files here to ignore them from prettier formatting
+
+/dist
+/coverage
+.docusaurus/
+
+/apps/glowsite/node_modules
+/apps/glowsite/public
+/apps/glowsite/.cache
