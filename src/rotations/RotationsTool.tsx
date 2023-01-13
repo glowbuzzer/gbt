@@ -1,10 +1,11 @@
 import { IJsonModel, Layout, Model, Node } from "flexlayout-react"
-import { StyledDockLayout } from "../styles"
+import { GlobalLayout } from "../styles"
 import { RotationsProvider } from "./RotationsProvider"
 import { QuaternionTile } from "./tiles/QuaternionTile"
 import * as React from "react"
 import { EulerTile } from "./tiles/EulerTile"
 import { TileContextProvider } from "../util/TileContextProvider"
+import { GlobalBanner } from "../GlobalBanner"
 
 export const RotationsTool = () => {
     const model: IJsonModel = {
@@ -84,15 +85,13 @@ export const RotationsTool = () => {
 
     return (
         <RotationsProvider>
-            <StyledDockLayout>
-                <h1>Rotations Tool</h1>
-                <Layout
-                    model={Model.fromJson(model)}
-                    factory={factory}
-                    realtimeResize
-                    font={{ size: "14px" }}
-                />
-            </StyledDockLayout>
+            <GlobalBanner title={"Rotation Converter"} />
+            <Layout
+                model={Model.fromJson(model)}
+                factory={factory}
+                realtimeResize
+                font={{ size: "14px" }}
+            />
         </RotationsProvider>
     )
 }
