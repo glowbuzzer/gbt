@@ -4,6 +4,7 @@ import { RotationsProvider } from "./RotationsProvider"
 import { QuaternionTile } from "./tiles/QuaternionTile"
 import * as React from "react"
 import { EulerTile } from "./tiles/EulerTile"
+import { TileContextProvider } from "../util/TileContextProvider"
 
 export const RotationsTool = () => {
     const model: IJsonModel = {
@@ -66,9 +67,17 @@ export const RotationsTool = () => {
     function factory(node: Node) {
         switch (node.getId()) {
             case "quaternion":
-                return <QuaternionTile />
+                return (
+                    <TileContextProvider appKey={"rotations"} tileKey={"quaternion"}>
+                        <QuaternionTile />
+                    </TileContextProvider>
+                )
             case "euler":
-                return <EulerTile />
+                return (
+                    <TileContextProvider appKey={"rotations"} tileKey={"euler"}>
+                        <EulerTile />
+                    </TileContextProvider>
+                )
         }
         return <div>hello</div>
     }

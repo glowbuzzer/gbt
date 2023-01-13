@@ -7,6 +7,10 @@ export const StyledTile = styled.div`
         display: grid;
         grid-template-columns: 1fr 1fr 1fr 1fr;
 
+        &.col3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
         .shadow {
             padding: 4px 8px;
             font-size: 12px;

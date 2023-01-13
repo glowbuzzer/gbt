@@ -1,13 +1,16 @@
 import * as React from "react"
 import styled from "styled-components"
 import { PrecisionInput } from "../../util/PrecisionInput"
-import { useRotations } from "../RotationsProvider"
+import { RotationInput, useRotations } from "../RotationsProvider"
 import { Quaternion } from "three"
 import { useEffect } from "react"
 import { StyledTile } from "./styles"
 import { DockToolbar, DockToolbarButtonGroup } from "../../util/DockToolbar"
 import { ReactComponent as CopyIcon } from "@material-symbols/svg-400/outlined/content_copy.svg"
 import { Button, Dropdown } from "antd"
+import { ToolbarButtonsPrecision } from "../../util/ToolbarButtonsPrecision"
+import { useTileContext } from "../../util/TileContextProvider"
+import { GlowbuzzerIcon } from "../../util/GlowbuzzerIcon"
 
 const StyledMenuItem = styled.div`
     padding: 0 0 4px 0;
@@ -28,7 +31,8 @@ const StyledMenuItem = styled.div`
 `
 
 export const QuaternionTile = () => {
-    const { quaternion, setQuaternion } = useRotations()
+    const { input, quaternion, setQuaternion } = useRotations()
+    const { precision } = useTileContext()
     const [edited, setEdited] = React.useState([
         quaternion.x,
         quaternion.y,
@@ -37,23 +41,32 @@ export const QuaternionTile = () => {
     ])
 
     useEffect(() => {
-        const [x, y, z, w] = edited
+        if (input !== RotationInput.QUATERNION) {
+            setEdited([quaternion.x, quaternion.y, quaternion.z, quaternion.w])
+        }
+    }, [quaternion, input])
+
+    function set_all(update: number[]) {
+        const [x, y, z, w] = update
+        setEdited(update)
         setQuaternion(new Quaternion(x, y, z, w).normalize())
-    }, [edited])
+    }
 
     function set(value, axis) {
         const update = [...edited]
         update[axis] = value
-        setEdited(update)
+        set_all(update)
     }
 
     const { x, y, z, w } = quaternion
+
     const shadow = [x, y, z, w].map((v, index) =>
         v.toFixed(5) === edited[index].toFixed(5) ? false : v.toFixed(5)
     )
 
     function normalize() {
         setEdited([x, y, z, w])
+        setQuaternion(new Quaternion(x, y, z, w).normalize())
     }
 
     const cols = ["x", "y", "z", "w"]
@@ -93,9 +106,10 @@ export const QuaternionTile = () => {
             <DockToolbar>
                 <DockToolbarButtonGroup>
                     <Dropdown menu={{ items }}>
-                        <CopyIcon width={18} height={18} viewBox="0 0 48 48" />
+                        <GlowbuzzerIcon Icon={CopyIcon} title="Copy to clipboard" button />
                     </Dropdown>
                 </DockToolbarButtonGroup>
+                <ToolbarButtonsPrecision />
             </DockToolbar>
             <StyledTile>
                 <div className="grid">
@@ -109,7 +123,7 @@ export const QuaternionTile = () => {
                             <PrecisionInput
                                 value={edited[index]}
                                 onChange={value => set(value, index)}
-                                precision={2}
+                                precision={precision}
                             />
                         </div>
                     ))}
