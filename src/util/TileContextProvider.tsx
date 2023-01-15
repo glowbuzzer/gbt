@@ -13,6 +13,8 @@ type TileContextType = {
     setAngularUnits: (units: AngularUnits) => void
     toLocalAngularUnits: (value: number) => number
     toStandardAngularUnits: (value: number) => number
+    toLocalLinearUnits: (value: number) => number
+    toStandardLinearUnits: (value: number) => number
 }
 
 export const tileContext = createContext<TileContextType>()
@@ -64,6 +66,26 @@ export const TileContextProvider: FC<TiledContextProviderProps> = ({
         toStandardAngularUnits(value: number) {
             if (angularUnits === "deg") {
                 return (value * Math.PI) / 180
+            }
+            return value
+        },
+        toLocalLinearUnits(value: number) {
+            if (linearUnits === "m") {
+                return value * 1000
+            } else if (linearUnits === "cm") {
+                return value * 10
+            } else if (linearUnits === "in") {
+                return value * 25.4
+            }
+            return value
+        },
+        toStandardLinearUnits(value: number) {
+            if (linearUnits === "m") {
+                return value / 1000
+            } else if (linearUnits === "cm") {
+                return value / 10
+            } else if (linearUnits === "in") {
+                return value / 25.4
             }
             return value
         }
