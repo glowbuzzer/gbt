@@ -118,7 +118,7 @@ export const KinVizTool = () => {
 
     return (
         <KinVizProvider>
-            <GlobalBanner title={"Kinematics Visualization Tool"} />
+            <GlobalBanner title={"Kinematics Visualization Tool"} id="kinviz" />
             <Layout
                 model={Model.fromJson(model)}
                 factory={factory}
