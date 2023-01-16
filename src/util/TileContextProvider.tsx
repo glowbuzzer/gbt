@@ -37,7 +37,7 @@ export const TileContextProvider: FC<TiledContextProviderProps> = ({
     children
 }: TiledContextProviderProps) => {
     function make_key(key) {
-        return `${appKey}-${tileKey}-${key}`
+        return `${appKey}.${tileKey}.${key}`
     }
 
     const [linearUnits, setLinearUnits] = useLocalStorage<LinearUnits>(

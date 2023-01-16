@@ -22,13 +22,13 @@ export const ToolbarButtonsPrecision = () => {
                 Icon={DecimalDecrease}
                 title="Decrease Decimal Places"
                 button
-                onClick={increase}
+                onClick={decrease}
             />
             <GlowbuzzerIcon
                 Icon={DecimalIncrease}
                 title="Increase Decimal Places"
                 button
-                onClick={decrease}
+                onClick={increase}
             />
         </DockToolbarButtonGroup>
     )

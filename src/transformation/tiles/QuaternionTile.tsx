@@ -1,9 +1,9 @@
 import * as React from "react"
 import styled from "styled-components"
 import { PrecisionInput } from "../../util/PrecisionInput"
-import { RotationInput, useRotations } from "../RotationsProvider"
+import { TransformationInput, useTransformation } from "../TransformationProvider"
 import { Quaternion } from "three"
-import { useEffect } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { StyledTile } from "./styles"
 import { DockToolbar, DockToolbarButtonGroup } from "../../util/DockToolbar"
 import { ReactComponent as CopyIcon } from "@material-symbols/svg-400/outlined/content_copy.svg"
@@ -31,17 +31,14 @@ const StyledMenuItem = styled.div`
 `
 
 export const QuaternionTile = () => {
-    const { input, quaternion, setQuaternion } = useRotations()
+    const { input, quaternion, setQuaternion } = useTransformation()
     const { precision } = useTileContext()
-    const [edited, setEdited] = React.useState([
-        quaternion.x,
-        quaternion.y,
-        quaternion.z,
-        quaternion.w
-    ])
+    const [edited, setEdited] = useState([quaternion.x, quaternion.y, quaternion.z, quaternion.w])
+    const [shadow, setShadow] = useState([])
+    const timerRef = useRef(null)
 
     useEffect(() => {
-        if (input !== RotationInput.QUATERNION) {
+        if (input !== TransformationInput.QUATERNION) {
             setEdited([quaternion.x, quaternion.y, quaternion.z, quaternion.w])
         }
     }, [quaternion, input])
@@ -58,13 +55,23 @@ export const QuaternionTile = () => {
         set_all(update)
     }
 
-    const { x, y, z, w } = quaternion
+    const update_shadow = useCallback(() => {
+        const { x, y, z, w } = quaternion
+        const new_value = [x, y, z, w].map((v, index) =>
+            v.toFixed(5) === edited[index].toFixed(5) ? null : v.toFixed(5)
+        )
+        setShadow(new_value)
+    }, [quaternion, edited, precision])
 
-    const shadow = [x, y, z, w].map((v, index) =>
-        v.toFixed(5) === edited[index].toFixed(5) ? false : v.toFixed(5)
-    )
+    useEffect(() => {
+        if (timerRef.current) {
+            clearTimeout(timerRef.current)
+        }
+        timerRef.current = setTimeout(update_shadow, 100)
+    }, [update_shadow])
 
     function normalize() {
+        const { x, y, z, w } = quaternion
         setEdited([x, y, z, w])
         setQuaternion(new Quaternion(x, y, z, w).normalize())
     }
@@ -112,26 +119,28 @@ export const QuaternionTile = () => {
                 <ToolbarButtonsPrecision />
             </DockToolbar>
             <StyledTile>
-                <div className="grid">
-                    {cols.map(axis => (
-                        <div className="label" key={axis}>
-                            {axis.toUpperCase()}
-                        </div>
-                    ))}
-                    {cols.map((axis, index) => (
-                        <div className="input" key={"t-" + axis}>
-                            <PrecisionInput
-                                value={edited[index]}
-                                onChange={value => set(value, index)}
-                                precision={precision}
-                            />
-                        </div>
-                    ))}
-                    {cols.map((axis, index) => (
-                        <div className="shadow" key={"s-" + axis}>
-                            {shadow[index] ? shadow[index] : ""}
-                        </div>
-                    ))}
+                <div className="input-wrapper">
+                    <div className="grid">
+                        {cols.map(axis => (
+                            <div className="label" key={axis}>
+                                {axis.toUpperCase()}
+                            </div>
+                        ))}
+                        {cols.map((axis, index) => (
+                            <div className="input" key={"t-" + axis}>
+                                <PrecisionInput
+                                    value={edited[index]}
+                                    onChange={value => set(value, index)}
+                                    precision={precision}
+                                />
+                            </div>
+                        ))}
+                        {cols.map((axis, index) => (
+                            <div className="shadow" key={"s-" + axis}>
+                                {shadow[index] ? shadow[index] : ""}
+                            </div>
+                        ))}
+                    </div>
                 </div>
                 <Button size="small" onClick={normalize}>
                     Normalize

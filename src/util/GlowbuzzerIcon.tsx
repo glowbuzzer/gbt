@@ -15,6 +15,7 @@ export type CustomIconProps = {
     disabled?: boolean
     checked?: boolean
     title?: string // tooltip text
+    size?: string
 }
 
 export function custom_icon_classes(props: CustomIconProps, ...classes: string[]): string {
@@ -30,13 +31,13 @@ export function custom_icon_classes(props: CustomIconProps, ...classes: string[]
         .join(" ")
 }
 
-export const StyledIcon = styled.span`
+export const StyledIcon = styled.span<{ size?: string }>`
     padding: 2px;
     user-select: none;
 
     svg {
-        width: 1.5em;
-        height: 1.5em;
+        width: ${props => props.size || "1.5em"};
+        height: ${props => props.size || "1.5em"};
     }
 
     &.button {
@@ -66,10 +67,11 @@ export const StyledIcon = styled.span`
 
 /** @ignore */
 export const GlowbuzzerIcon = (props: CustomIconProps) => {
-    const { name, Icon, title, disabled } = props
+    const { name, Icon, title, disabled, size } = props
     const classes = custom_icon_classes(props, name, "anticon")
     const el = (
         <StyledIcon
+            size={size}
             className={classes}
             onClick={disabled ? undefined : props.onClick}
             onMouseDown={e => (props.onClick ? e.stopPropagation() : undefined)}

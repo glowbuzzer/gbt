@@ -1,6 +1,6 @@
 import React from "react"
 import { BrowserRouter, Route, Routes } from "react-router-dom"
-import { RotationsTool } from "./rotations/RotationsTool"
+import { TransformationPage } from "./transformation/TransformationPage"
 import { GlobalLayout } from "./styles"
 import { KinVizTool } from "./kinviz/KinVizTool"
 
@@ -10,7 +10,7 @@ export const AppRouter = () => {
         <GlobalLayout>
             <BrowserRouter>
                 <Routes>
-                    <Route path="/" element={<RotationsTool />} />
+                    <Route path="/" element={<TransformationPage />} />
                     <Route path="/kv" element={<KinVizTool />} />
                 </Routes>
             </BrowserRouter>

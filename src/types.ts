@@ -9,3 +9,8 @@ export enum LinearUnits {
     M = "m",
     CM = "cm"
 }
+
+export enum MatrixOrder {
+    ROW_MAJOR = "row-major",
+    COLUMN_MAJOR = "column-major"
+}
