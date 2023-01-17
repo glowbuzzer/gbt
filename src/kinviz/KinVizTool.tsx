@@ -18,6 +18,9 @@ import { ControlsTile } from "./tiles/ControlsTile"
 
 import { ThreeDimensionalViewTile } from "./tiles/ThreeDimensionalViewTile"
 
+import { go_matrix } from "./ik/IkMath"
+import { compute_jinv } from "./ik/GenericSixdofKin"
+
 export const KinVizTool = () => {
     const model: IJsonModel = {
         global: {
@@ -115,6 +118,17 @@ export const KinVizTool = () => {
         }
         return <div>hello</div>
     }
+
+    // 4 5 −8 −5 −6 9 −2 −2 3
+
+    const testm: go_matrix = new go_matrix(3, 3, [
+        [0, -3, -2],
+        [1, -4, -2],
+        [-3, 4, 1]
+    ])
+    console.log("testm", testm)
+    const res = compute_jinv(testm)
+    console.log(res)
 
     return (
         <KinVizProvider>

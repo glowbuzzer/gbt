@@ -7,14 +7,14 @@ import {
     go_cart_vector_convert,
     go_dh_pose_convert,
     go_link,
-    go_matrix, go_matrix_inv,
-    go_matrix_inverse,
+    go_matrix,
+    go_pose,
+    go_matrix_inv,
     go_matrix_matrix_add,
     go_matrix_matrix_copy,
     go_matrix_matrix_mult,
     go_matrix_transpose,
     go_matrix_vector_cross,
-    go_pose,
     go_pose_pose_mult,
     go_quat,
     go_quat_inv,
@@ -27,8 +27,7 @@ import {
     LinkParamRepresentation,
     LinkQuantities,
     retval
-} from "IkMath"
-
+} from "./IkMath"
 
 // #define DEFAULT_A1 0
 // #define DEFAULT_ALPHA1 0
@@ -54,14 +53,13 @@ import {
 // #define DEFAULT_ALPHA6 -PI_2
 // #define DEFAULT_D6 0
 
-
 const machine_data = {
     max_iterations: 1000,
     lastIterations: 0,
     a: [0, 0, 300, 50, 0, 0],
     alpha: [0, -Math.PI / 2, 0, -Math.PI / 2, Math.PI / 2, -Math.PI / 2],
     d: [0, 0, 70, 400, 0, 0],
-    unrotate: [0, 0, 0, 0, 0, 0],
+    unrotate: [0, 0, 0, 0, 0, 0]
 }
 
 // static struct haldata {
@@ -78,7 +76,7 @@ const machine_data = {
 
 const total_joints = 6
 
-const j: number[]
+// const j: number[]
 
 // #define A(i) (*(haldata->a[i]))
 // #define ALPHA(i) (*(haldata->alpha[i]))
@@ -121,10 +119,10 @@ function genser_kin_init() {
     const gens = new genser()
 
     for (let t = 0; t < GENSER_MAX_JOINTS; t++) {
-        gens.links[t].a = machine_data.a[t]
-        gens.links[t].alpha = machine_data.alpha[t]
-        gens.links[t].d = machine_data.d[t]
-        gens.links[t].theta = 0
+        gens.links[t].dh.a = machine_data.a[t]
+        gens.links[t].dh.alpha = machine_data.alpha[t]
+        gens.links[t].dh.d = machine_data.d[t]
+        gens.links[t].dh.theta = 0
         gens.links[t].type = LinkParamRepresentation.GO_LINK_DH
         gens.links[t].unrotate = 0
     }
@@ -139,13 +137,17 @@ function genser_kin_init() {
    It is analytically possible to calculate the inverse of the jacobian
    (sometimes only the pseudoinverse) and to use that for the inverse kinematics.
 */
-function compute_jfwd(link_params: go_link[], link_number: number, Jfwd: go_matrix, T_L_0: go_pose) {
-
-    const Jv = new go_matrix(3, link_number)
-    const Jw = new go_matrix(3, link_number)
+function compute_jfwd(
+    link_params: go_link[],
+    link_number: number,
+    Jfwd: go_matrix,
+    T_L_0: go_pose
+): number {
+    var Jv = new go_matrix(3, link_number)
+    var Jw = new go_matrix(3, link_number)
     const R_i_ip1 = new go_matrix(3, 3)
     const scratch = new go_matrix(3, link_number)
-    const R_inv = new go_matrix(3, 3)
+    // const R_inv = new go_matrix(3, 3)
 
     var pose: go_pose
     var quat: go_quat
@@ -153,337 +155,320 @@ function compute_jfwd(link_params: go_link[], link_number: number, Jfwd: go_matr
     const P_ip1_i = new go_vector(3)
     Jv.el[0][0] = 0
     Jv.el[1][0] = 0
-    Jv.el[2][0] = (LinkQuantities.GO_QUANTITY_LENGTH == link_params[0].quantity) ? 1 : 0
+    Jv.el[2][0] = LinkQuantities.GO_QUANTITY_LENGTH == link_params[0].quantity ? 1 : 0
     Jw.el[0][0] = 0
     Jw.el[1][0] = 0
-    Jw.el[2][0] = (LinkQuantities.GO_QUANTITY_ANGLE == (link_params[0].quantity) ? 1 : 0)
+    Jw.el[2][0] = LinkQuantities.GO_QUANTITY_ANGLE == link_params[0].quantity ? 1 : 0
 
-//     /* initialize inverse rotational transform */
+    //     /* initialize inverse rotational transform */
     if (LinkParamRepresentation.GO_LINK_DH == link_params[0].type) {
-        const {ret, pout: pose} = go_dh_pose_convert(link_params[0].dh)
+        const { ret, pout: pose } = go_dh_pose_convert(link_params[0].dh)
     } else if (LinkParamRepresentation.GO_LINK_PP == link_params[0].type) {
         const pose = link_params[0].pp.pose
     } else {
-        return retval.GO_RESULT_IMPL_ERROR;
+        return retval.GO_RESULT_IMPL_ERROR
     }
 
-// *T_L_0 = pose;
-//     for (col = 1; col < link_number; col++) {
-//         /* T_ip1_i */
-//         if (GO_LINK_DH == link_params[col].type) {
-//             go_dh_pose_convert(&link_params[col].u.dh, &pose);
-//         } else if (GO_LINK_PP == link_params[col].type) {
-//             pose = link_params[col].u.pp.pose;
-//         } else {
-//             return GO_RESULT_IMPL_ERROR;
-//         }
+    // *T_L_0 = pose;
+    //     for (col = 1; col < link_number; col++) {
+    //         /* T_ip1_i */
+    //         if (GO_LINK_DH == link_params[col].type) {
+    //             go_dh_pose_convert(&link_params[col].u.dh, &pose);
+    //         } else if (GO_LINK_PP == link_params[col].type) {
+    //             pose = link_params[col].u.pp.pose;
+    //         } else {
+    //             return GO_RESULT_IMPL_ERROR;
+    //         }
 
     var ret1
     for (let col = 1; col < link_number; col++) {
         /* T_ip1_i */
         if (LinkParamRepresentation.GO_LINK_DH == link_params[col].type) {
-            ({ret: ret1, pout: pose} = go_dh_pose_convert(link_params[col].dh))
+            ;({ ret: ret1, pout: pose } = go_dh_pose_convert(link_params[col].dh))
         } else if (LinkParamRepresentation.GO_LINK_PP == link_params[col].type) {
             pose = link_params[col].pp.pose
         } else {
             return retval.GO_RESULT_IMPL_ERROR
         }
 
-        const vec = go_cart_vector_convert(pose.tran);
+        const vec = go_cart_vector_convert(pose.tran)
 
         P_ip1_i[0] = vec[0]
         P_ip1_i[1] = vec[1]
-        P_ip1_i[2] = vec[2]
+        P_ip1_i[2] = vec[2](({ qout: quat } = go_quat_inv(pose.rot)))
 
-        ({ret: ret1, qout: quat} = go_quat_inv(pose.rot))
+        const { matrix: R_i_ip1 } = go_quat_matrix_convert(quat)
 
-        const {ret2, R_i_ip1} = go_quat_matrix_convert(quat);
+        //         /* Jv */
+        const { axv: scratch1 } = go_matrix_vector_cross(Jw, P_ip1_i)
+        const { apb: scratch2 } = go_matrix_matrix_add(Jv, scratch1)
+        const { ab: scratch3 } = go_matrix_matrix_mult(R_i_ip1, scratch2)
 
-
-//         /* Jv */
-        const {ret3, scratch1} = go_matrix_vector_cross(Jw, P_ip1_i);
-
-
-        const {ret4, scratch2} = go_matrix_matrix_add(Jv, scratch1);
-
-        const {ret5, scratch3} = go_matrix_matrix_mult(R_i_ip1, scratch2);
-
-        go_matrix_matrix_copy(Jv, scratch3);
+        go_matrix_matrix_copy(Jv, scratch3)
 
         Jv.el[0][col] = 0
         Jv.el[1][col] = 0
-        Jv.el[2][col] = (LinkQuantities.GO_QUANTITY_LENGTH == link_params[col].quantity ? 1 : 0);
-
+        Jv.el[2][col] = LinkQuantities.GO_QUANTITY_LENGTH == link_params[col].quantity ? 1 : 0
 
         //         /* Jw */
 
-        const {ret6, scratch4} = go_matrix_matrix_mult(R_i_ip1,Jw);
-        go_matrix_matrix_copy(Jw, scratch4);
+        const { ab: scratch4 } = go_matrix_matrix_mult(R_i_ip1, Jw)
+        go_matrix_matrix_copy(Jw, scratch4)
 
         Jw.el[0][col] = 0
-            Jw.el[1][col] = 0
-        Jw.el[2][col] = (LinkQuantities.GO_QUANTITY_ANGLE == link_params[col].quantity ? 1 : 0);
+        Jw.el[1][col] = 0
+        Jw.el[2][col] = LinkQuantities.GO_QUANTITY_ANGLE == link_params[col].quantity ? 1 : 0
 
         if (LinkParamRepresentation.GO_LINK_DH == link_params[col].type) {
-            go_dh_pose_convert(&link_params[col].u.dh, &pose);
-        } else if (GO_LINK_PP == link_params[col].type) {
-            pose = link_params[col].u.pp.pose;
+            ;({ pout: pose } = go_dh_pose_convert(link_params[col].dh))
+        } else if (LinkParamRepresentation.GO_LINK_PP == link_params[col].type) {
+            pose = link_params[col].pp.pose
         } else {
-            return GO_RESULT_IMPL_ERROR;
+            return retval.GO_RESULT_IMPL_ERROR
         }
-        go_pose_pose_mult(T_L_0, &pose, T_L_0);
+
+        ;({ pout: T_L_0 } = go_pose_pose_mult(T_L_0, pose))
     }
 
     /* rotate back into {0} frame */
-    go_quat_matrix_convert(&T_L_0->rot, &R_inv);
-    go_matrix_matrix_mult(&R_inv, &Jv, &Jv);
-    go_matrix_matrix_mult(&R_inv, &Jw, &Jw);
+    const { matrix: R_inv } = go_quat_matrix_convert(T_L_0.rot)
+
+    ;({ ab: Jv } = go_matrix_matrix_mult(R_inv, Jv))
+    ;({ ab: Jw } = go_matrix_matrix_mult(R_inv, Jw))
 
     /* put Jv atop Jw in J */
     for (let row = 0; row < 6; row++) {
         for (let col = 0; col < link_number; col++) {
             if (row < 3) {
-                Jfwd->el[row][col] = Jv.el[row][col];
+                Jfwd.el[row][col] = Jv.el[row][col]
             } else {
-                Jfwd->el[row][col] = Jw.el[row - 3][col];
+                Jfwd.el[row][col] = Jw.el[row - 3][col]
             }
         }
     }
 
-    return GO_RESULT_OK;
+    return retval.GO_RESULT_OK
+}
 
-
-
-    }
-
-
-    function compute_jinv(Jfwd: go_matrix): { res:number, Jinv: go_matrix } {
-
+export function compute_jinv(Jfwd: go_matrix): { res: number; Jinv: go_matrix } {
     var Jinv: go_matrix
-       var res1: number
-        // const JJT= new go_matrix(6, 6)
-        // const JT = new go_matrix(6, 6)
-//     /* compute inverse, or pseudo-inverse */
-        if (Jfwd.rows == Jfwd.cols) {
-            ({res1, Jinv} = go_matrix_inverse(Jfwd))
-            if (res1 != retval.GO_RESULT_OK) {
-                return {res:res1, Jinv:Jfwd}
-            }
+    var res1: number
+    console.log("m2", Jfwd)
+    // const JJT= new go_matrix(6, 6)
+    // const JT = new go_matrix(6, 6)
+    //     /* compute inverse, or pseudo-inverse */
+    if (Jfwd.rows == Jfwd.cols) {
+        ;({ ret: res1, minv: Jinv } = go_matrix_inv(Jfwd))
+        if (res1 != retval.GO_RESULT_OK) {
+            return { res: res1, Jinv: Jfwd }
         }
-        else if (Jfwd.rows < Jfwd.cols) {
-            /* underdetermined, optimize on smallest sum of square of speeds */
-                /* JT(JJT)inv */
+    } else if (Jfwd.rows < Jfwd.cols) {
+        /* underdetermined, optimize on smallest sum of square of speeds */
+        /* JT(JJT)inv */
 
-    const {res2, JT}=go_matrix_transpose(Jfwd);
+        const { at: JT } = go_matrix_transpose(Jfwd)
 
-    const {res3, JJT} =go_matrix_matrix_mult(Jfwd, JT);
+        const { ab: JJT } = go_matrix_matrix_mult(Jfwd, JT)
 
+        const { ret: res4, minv: scratch } = go_matrix_inv(JJT)
 
-    const {res4, scratch} = go_matrix_inv(JJT);
+        go_matrix_matrix_copy(scratch, JJT)
 
-    go_matrix_matrix_copy(scratch, JJT);
+        if (retval.GO_RESULT_OK != res4) return { res: res4, Jinv: Jfwd }
 
+        const { ret: res5, ab: scratch2 } = go_matrix_matrix_mult(JT, JJT)
+        go_matrix_matrix_copy(scratch2, Jinv)
+    } else {
+        /* overdetermined, do least-squares best fit */
+        /* (JTJ)invJT */
 
-    if (retval.GO_RESULT_OK != res4)
-        return {res:res4, Jinv:Jfwd}
+        // const JTJ = new go_matrix(6, 6)
+        // const JT = new go_matrix(6, 6)
 
-    const {res5, scratch2}=go_matrix_matrix_mult(JT, JJT);
-    go_matrix_matrix_copy(scratch2, Jinv);
+        const { ret: res6, at: JT } = go_matrix_transpose(Jfwd)
 
-} else {
-    /* overdetermined, do least-squares best fit */
-    /* (JTJ)invJT */
+        const { ret: res7, ab: JTJ } = go_matrix_matrix_mult(JT, Jfwd)
+        const { ret: res8, minv: scratch } = go_matrix_inv(JTJ)
 
-            // const JTJ = new go_matrix(6, 6)
-// const JT = new go_matrix(6, 6)
+        if (retval.GO_RESULT_OK != res8) return { res: res8, Jinv: Jfwd }
 
+        const { ret: res9, ab: scratch5 } = go_matrix_matrix_mult(JTJ, JT)
 
-    const {res6, JT} = go_matrix_transpose(Jfwd);
-
-            const {res7, JTJ} = go_matrix_matrix_mult(JT, Jfwd);
-            const {res8, scratch} = go_matrix_inv(JTJ);
-
-    if (retval.GO_RESULT_OK != res8)
-        return {res:res8, Jinv:Jfwd}
-
-    const {res9, scratch5} = go_matrix_matrix_mult(JTJ, JT);
-
-    go_matrix_matrix_copy(scratch5, Jinv);
-}
-
-    return {res:retval.GO_RESULT_OK, Jinv}
-}
-
-    function genser_kin_jac_inv(pos: go_pose, vel: go_screw, joints: number[], jointvels: number[]) {
-
-        const Jfwd = new go_matrix(6, 6)
-        const Jinv = new go_matrix(6, 6)
-        const T_L_0 = new go_pose()
-        const linkout: go_link[] = []
-
-        const vw: number[]
-    for (let link = 0; link < genser.link_num; link++) {
-
-
+        go_matrix_matrix_copy(scratch5, Jinv)
     }
 
-//     for (link = 0; link < genser->link_num; link++) {
-//     retval =
-//         go_link_joint_set(&genser->links[link], joints[link],
-// &linkout[link]);
-//     if (GO_RESULT_OK != retval)
-//         return retval;
-// }
-//     retval = compute_jfwd(linkout, genser->link_num, &Jfwd, &T_L_0);
-//     if (GO_RESULT_OK != retval)
-//         return retval;
-//     retval = compute_jinv(&Jfwd, &Jinv);
-//     if (GO_RESULT_OK != retval)
-//         return retval;
-//
-//     vw[0] = vel->v.x;
-//     vw[1] = vel->v.y;
-//     vw[2] = vel->v.z;
-//     vw[3] = vel->w.x;
-//     vw[4] = vel->w.y;
-//     vw[5] = vel->w.z;
-//
-//     return go_matrix_vector_mult(&Jinv, vw, jointvels);
-// }
-//
-// int genser_kin_jac_fwd(void *kins,
-// const go_real * joints,
-// const go_real * jointvels, const go_pose * pos, go_screw * vel)
-// {
-//     genser_struct *genser = (genser_struct *) kins;
-//     GO_MATRIX_DECLARE(Jfwd, Jfwd_stg, 6, GENSER_MAX_JOINTS);
-//     go_pose T_L_0;
-//     go_link linkout[GENSER_MAX_JOINTS];
-//     go_real vw[6];
-//     int link;
-//     int retval;
-//
-//     go_matrix_init(Jfwd, Jfwd_stg, 6, genser->link_num);
-//
-//     for (link = 0; link < genser->link_num; link++) {
-//     retval =
-//         go_link_joint_set(&genser->links[link], joints[link],
-// &linkout[link]);
-//     if (GO_RESULT_OK != retval)
-//         return retval;
-// }
-//
-//     retval = compute_jfwd(linkout, genser->link_num, &Jfwd, &T_L_0);
-//     if (GO_RESULT_OK != retval)
-//         return retval;
-//
-//     go_matrix_vector_mult(&Jfwd, jointvels, vw);
-//     vel->v.x = vw[0];
-//     vel->v.y = vw[1];
-//     vel->v.z = vw[2];
-//     vel->w.x = vw[3];
-//     vel->w.y = vw[4];
-//     vel->w.z = vw[5];
-//
-//     return GO_RESULT_OK;
-// }
-//
-// /* main function called by emc2 for forward Kins */
-// int genserKinematicsForward(const double *joint,
-// EmcPose * world,
-// const KINEMATICS_FORWARD_FLAGS * fflags,
-// KINEMATICS_INVERSE_FLAGS * iflags) {
-//
-//     go_pose *pos;
-//     go_rpy rpy;
-//     go_real jcopy[GENSER_MAX_JOINTS]; // will hold the radian conversion of joints
-//     int ret = 0;
-//     int i, changed=0;
-//     if (!genser_hal_inited) {
-//         rtapi_print_msg(RTAPI_MSG_ERR,
-//             "genserKinematicsForward: not initialized\n");
-//         return -1;
-//     }
-//
-//     for (i=0; i< 6; i++)  {
-//         // FIXME - debug hack
-//         if (!GO_ROT_CLOSE(j[i],joint[i])) changed = 1;
-//         // convert to radians to pass to genser_kin_fwd
-//         jcopy[i] = joint[i] * PM_PI / 180;
-//         if ((i) && *(haldata->unrotate[i]))
-//             jcopy[i] -= *(haldata->unrotate[i])*jcopy[i-1];
-//     }
-//
-//     if (changed) {
-//         for (i=0; i< 6; i++)
-//             j[i] = joint[i];
-//         // rtapi_print("genserKinematicsForward(joints: %f %f %f %f %f %f)\n",
-//         //joint[0],joint[1],joint[2],joint[3],joint[4],joint[5]);
-//     }
-//     // AJ: convert from emc2 coords (XYZABC - which are actually rpy euler
-//     // angles)
-//     // to go angles (quaternions)
-//     pos = haldata->pos;
-//     rpy.y = world->c * PM_PI / 180;
-//     rpy.p = world->b * PM_PI / 180;
-//     rpy.r = world->a * PM_PI / 180;
-//
-//     go_rpy_quat_convert(&rpy, &pos->rot);
-//     pos->tran.x = world->tran.x;
-//     pos->tran.y = world->tran.y;
-//     pos->tran.z = world->tran.z;
-//
-//     //pass through unused 678 as uvw
-//     if (total_joints > 6) world->u = joint[6];
-//     if (total_joints > 7) world->v = joint[7];
-//     if (total_joints > 8) world->w = joint[8];
-//
-//     // pos will be the world location
-//     // jcopy: joitn position in radians
-//     ret = genser_kin_fwd(KINS_PTR, jcopy, pos);
-//     if (ret < 0)
-//         return ret;
-//
-//     // AJ: convert back to emc2 coords
-//     ret = go_quat_rpy_convert(&pos->rot, &rpy);
-//     if (ret < 0)
-//         return ret;
-//     world->tran.x = pos->tran.x;
-//     world->tran.y = pos->tran.y;
-//     world->tran.z = pos->tran.z;
-//     world->a = rpy.r * 180 / PM_PI;
-//     world->b = rpy.p * 180 / PM_PI;
-//     world->c = rpy.y * 180 / PM_PI;
-//
-//     if (changed) {
-// // rtapi_print("genserKinematicsForward(world: %f %f %f %f %f %f)\n", world->tran.x, world->tran.y, world->tran.z, world->a, world->b, world->c);
-//     }
-//     return 0;
-// }
-//
-// int genser_kin_fwd(void *kins, const go_real * joints, go_pose * pos)
-// {
-//     genser_struct *genser = kins;
-//     go_link linkout[GENSER_MAX_JOINTS];
-//
-//     int link;
-//     int retval;
-//
-//     genser_kin_init();
-//
-//     for (link = 0; link < genser->link_num; link++) {
-//     retval = go_link_joint_set(&genser->links[link], joints[link], &linkout[link]);
-//     if (GO_RESULT_OK != retval)
-//         return retval;
-// }
-//
-//     retval = go_link_pose_build(linkout, genser->link_num, pos);
-//     if (GO_RESULT_OK != retval)
-//         return retval;
-//
-//     return GO_RESULT_OK;
-// }
-//
+    return { res: retval.GO_RESULT_OK, Jinv }
+}
+
+function genser_kin_jac_inv(pos: go_pose, vel: go_screw, joints: number[], jointvels: number[]) {
+    const Jfwd = new go_matrix(6, 6)
+    const Jinv = new go_matrix(6, 6)
+    const T_L_0 = new go_pose()
+    const linkout: go_link[] = []
+
+    // const vw: number[]
+    // for (let link = 0; link < genser.link_num; link++) {
+    //
+    //
+    // }
+
+    //     for (link = 0; link < genser->link_num; link++) {
+    //     retval =
+    //         go_link_joint_set(&genser->links[link], joints[link],
+    // &linkout[link]);
+    //     if (GO_RESULT_OK != retval)
+    //         return retval;
+    // }
+    //     retval = compute_jfwd(linkout, genser->link_num, &Jfwd, &T_L_0);
+    //     if (GO_RESULT_OK != retval)
+    //         return retval;
+    //     retval = compute_jinv(&Jfwd, &Jinv);
+    //     if (GO_RESULT_OK != retval)
+    //         return retval;
+    //
+    //     vw[0] = vel->v.x;
+    //     vw[1] = vel->v.y;
+    //     vw[2] = vel->v.z;
+    //     vw[3] = vel->w.x;
+    //     vw[4] = vel->w.y;
+    //     vw[5] = vel->w.z;
+    //
+    //     return go_matrix_vector_mult(&Jinv, vw, jointvels);
+    // }
+    //
+    // int genser_kin_jac_fwd(void *kins,
+    // const go_real * joints,
+    // const go_real * jointvels, const go_pose * pos, go_screw * vel)
+    // {
+    //     genser_struct *genser = (genser_struct *) kins;
+    //     GO_MATRIX_DECLARE(Jfwd, Jfwd_stg, 6, GENSER_MAX_JOINTS);
+    //     go_pose T_L_0;
+    //     go_link linkout[GENSER_MAX_JOINTS];
+    //     go_real vw[6];
+    //     int link;
+    //     int retval;
+    //
+    //     go_matrix_init(Jfwd, Jfwd_stg, 6, genser->link_num);
+    //
+    //     for (link = 0; link < genser->link_num; link++) {
+    //     retval =
+    //         go_link_joint_set(&genser->links[link], joints[link],
+    // &linkout[link]);
+    //     if (GO_RESULT_OK != retval)
+    //         return retval;
+    // }
+    //
+    //     retval = compute_jfwd(linkout, genser->link_num, &Jfwd, &T_L_0);
+    //     if (GO_RESULT_OK != retval)
+    //         return retval;
+    //
+    //     go_matrix_vector_mult(&Jfwd, jointvels, vw);
+    //     vel->v.x = vw[0];
+    //     vel->v.y = vw[1];
+    //     vel->v.z = vw[2];
+    //     vel->w.x = vw[3];
+    //     vel->w.y = vw[4];
+    //     vel->w.z = vw[5];
+    //
+    //     return GO_RESULT_OK;
+    // }
+    //
+    // /* main function called by emc2 for forward Kins */
+    // int genserKinematicsForward(const double *joint,
+    // EmcPose * world,
+    // const KINEMATICS_FORWARD_FLAGS * fflags,
+    // KINEMATICS_INVERSE_FLAGS * iflags) {
+    //
+    //     go_pose *pos;
+    //     go_rpy rpy;
+    //     go_real jcopy[GENSER_MAX_JOINTS]; // will hold the radian conversion of joints
+    //     int ret = 0;
+    //     int i, changed=0;
+    //     if (!genser_hal_inited) {
+    //         rtapi_print_msg(RTAPI_MSG_ERR,
+    //             "genserKinematicsForward: not initialized\n");
+    //         return -1;
+    //     }
+    //
+    //     for (i=0; i< 6; i++)  {
+    //         // FIXME - debug hack
+    //         if (!GO_ROT_CLOSE(j[i],joint[i])) changed = 1;
+    //         // convert to radians to pass to genser_kin_fwd
+    //         jcopy[i] = joint[i] * PM_PI / 180;
+    //         if ((i) && *(haldata->unrotate[i]))
+    //             jcopy[i] -= *(haldata->unrotate[i])*jcopy[i-1];
+    //     }
+    //
+    //     if (changed) {
+    //         for (i=0; i< 6; i++)
+    //             j[i] = joint[i];
+    //         // rtapi_print("genserKinematicsForward(joints: %f %f %f %f %f %f)\n",
+    //         //joint[0],joint[1],joint[2],joint[3],joint[4],joint[5]);
+    //     }
+    //     // AJ: convert from emc2 coords (XYZABC - which are actually rpy euler
+    //     // angles)
+    //     // to go angles (quaternions)
+    //     pos = haldata->pos;
+    //     rpy.y = world->c * PM_PI / 180;
+    //     rpy.p = world->b * PM_PI / 180;
+    //     rpy.r = world->a * PM_PI / 180;
+    //
+    //     go_rpy_quat_convert(&rpy, &pos->rot);
+    //     pos->tran.x = world->tran.x;
+    //     pos->tran.y = world->tran.y;
+    //     pos->tran.z = world->tran.z;
+    //
+    //     //pass through unused 678 as uvw
+    //     if (total_joints > 6) world->u = joint[6];
+    //     if (total_joints > 7) world->v = joint[7];
+    //     if (total_joints > 8) world->w = joint[8];
+    //
+    //     // pos will be the world location
+    //     // jcopy: joitn position in radians
+    //     ret = genser_kin_fwd(KINS_PTR, jcopy, pos);
+    //     if (ret < 0)
+    //         return ret;
+    //
+    //     // AJ: convert back to emc2 coords
+    //     ret = go_quat_rpy_convert(&pos->rot, &rpy);
+    //     if (ret < 0)
+    //         return ret;
+    //     world->tran.x = pos->tran.x;
+    //     world->tran.y = pos->tran.y;
+    //     world->tran.z = pos->tran.z;
+    //     world->a = rpy.r * 180 / PM_PI;
+    //     world->b = rpy.p * 180 / PM_PI;
+    //     world->c = rpy.y * 180 / PM_PI;
+    //
+    //     if (changed) {
+    // // rtapi_print("genserKinematicsForward(world: %f %f %f %f %f %f)\n", world->tran.x, world->tran.y, world->tran.z, world->a, world->b, world->c);
+    //     }
+    //     return 0;
+    // }
+    //
+    // int genser_kin_fwd(void *kins, const go_real * joints, go_pose * pos)
+    // {
+    //     genser_struct *genser = kins;
+    //     go_link linkout[GENSER_MAX_JOINTS];
+    //
+    //     int link;
+    //     int retval;
+    //
+    //     genser_kin_init();
+    //
+    //     for (link = 0; link < genser->link_num; link++) {
+    //     retval = go_link_joint_set(&genser->links[link], joints[link], &linkout[link]);
+    //     if (GO_RESULT_OK != retval)
+    //         return retval;
+    // }
+    //
+    //     retval = go_link_pose_build(linkout, genser->link_num, pos);
+    //     if (GO_RESULT_OK != retval)
+    //         return retval;
+    //
+    //     return GO_RESULT_OK;
+    // }
+    //
 
     // typedef struct {
     //     double x, y, z;     /* this.x, etc. */
@@ -509,22 +494,20 @@ function compute_jfwd(link_params: go_link[], link_number: number, Jfwd: go_matr
         w: number
     }
 
-
     function genserKinematicsInverse(world: EmcPose, joints: number[]) {
-
-        const Jfwd = new go_matrix(6, 6);
-        const Jinv = new go_matrix(6, 6);
-        const T_L_0 = new go_pose();
+        const Jfwd = new go_matrix(6, 6)
+        const Jinv = new go_matrix(6, 6)
+        const T_L_0 = new go_pose()
         const vw: number[] = []
         const jest: number[] = []
         const dj: number[] = []
-        const pest = new go_pose();
-        const pestinv = new go_pose();
-        const Tdelta = new go_pose();
-        const rpy = new go_rpy();
-        const rvec = new go_rvec();
-        const cart = new go_cart();
-        const linkout: go_link[]
+        const pest = new go_pose()
+        const pestinv = new go_pose()
+        const Tdelta = new go_pose()
+        const rpy = new go_rpy()
+        const rvec = new go_rvec()
+        const cart = new go_cart()
+        // const linkout: go_link[]
         var link: number
         var smalls: number
         var retval: number
@@ -533,16 +516,15 @@ function compute_jfwd(link_params: go_link[], link_number: number, Jfwd: go_matr
 
         console.log("world", world.tran.x, world.tran.y, world.tran.z, world.a, world.b, world.c)
 
-//     // FIXME-AJ: rpy or zyx ?
+        //     // FIXME-AJ: rpy or zyx ?
 
-        rpy.y = world.c * Math.PI / 180;
-        rpy.p = world.b * Math.PI / 180;
-        rpy.r = world.a * Math.PI / 180;
+        rpy.y = (world.c * Math.PI) / 180
+        rpy.p = (world.b * Math.PI) / 180
+        rpy.r = (world.a * Math.PI) / 180
 
-
-        go_rpy_quat_convert(rpy,);
-
+        go_rpy_quat_convert(rpy)
     }
+}
 
 //
 //     go_rpy_quat_convert(&rpy, &haldata->pos->rot);
@@ -663,7 +645,6 @@ function compute_jfwd(link_params: go_link[], link_number: number, Jfwd: go_matr
 //         joints[0],joints[1],joints[2],joints[3],joints[4],joints[5], genser->iterations);
 //     return GO_RESULT_ERROR;
 // }
-
 
 //
 // /*
