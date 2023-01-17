@@ -11,7 +11,8 @@ export const AppRouter = () => {
             <BrowserRouter>
                 <Routes>
                     <Route path="/" element={<TransformationPage />} />
-                    <Route path="/kv" element={<KinVizTool />} />
+                    <Route path="/kinviz" element={<KinVizTool />} />
+                    <Route path="/trconv" element={<TransformationPage />} />
                 </Routes>
             </BrowserRouter>
         </GlobalLayout>
