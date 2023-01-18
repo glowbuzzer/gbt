@@ -1,13 +1,15 @@
 import * as React from "react"
-import { DockToolbar } from "../../util/DockToolbar"
+import { useEffect, useState } from "react"
+import { DockToolbar, DockToolbarButtonGroup } from "../../util/DockToolbar"
 import { StyledTile } from "./styles"
 import { PrecisionInput } from "../../util/PrecisionInput"
 import { Button } from "antd"
 import { TransformationInput, useTransformation } from "../TransformationProvider"
-import { useEffect, useState } from "react"
-import { Quaternion, Vector3 } from "three"
+import { Vector3 } from "three"
 import { useTileContext } from "../../util/TileContextProvider"
 import { ToolbarButtonsPrecision } from "../../util/ToolbarButtonsPrecision"
+import { ReactComponent as HomeIcon } from "@material-symbols/svg-400/sharp/clear_all.svg"
+import { GlowbuzzerIcon } from "../../util/GlowbuzzerIcon"
 
 export const TranslationTile = () => {
     const { input, translation, setTranslation } = useTransformation()
@@ -39,6 +41,14 @@ export const TranslationTile = () => {
         <div>
             <DockToolbar>
                 <ToolbarButtonsPrecision />
+                <DockToolbarButtonGroup>
+                    <GlowbuzzerIcon
+                        Icon={HomeIcon}
+                        button
+                        onClick={() => set_all([0, 0, 0])}
+                        title="Set to Zero"
+                    />
+                </DockToolbarButtonGroup>
             </DockToolbar>
             <StyledTile>
                 <div className="input-wrapper">
@@ -59,9 +69,6 @@ export const TranslationTile = () => {
                         ))}
                     </div>
                 </div>
-                <Button size="small" onClick={() => set_all([0, 0, 0])}>
-                    Reset
-                </Button>
             </StyledTile>
         </div>
     )

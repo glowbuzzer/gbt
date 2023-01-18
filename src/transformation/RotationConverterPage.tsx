@@ -10,8 +10,11 @@ import { ThreeTransformationViewTile } from "./tiles/ThreeTransformationViewTile
 import { TranslationTile } from "./tiles/TranslationTile"
 import { Matrix3Tile } from "./tiles/Matrix3Tile"
 import { Matrix4Tile } from "./tiles/Matrix4Tile"
+import { CopyPasteTile } from "./tiles/CopyPasteTile"
 
-export const TransformationPage = () => {
+const APP_KEY = "rotations"
+
+export const RotationConverterPage = () => {
     const model: IJsonModel = {
         global: {
             tabSetEnableMaximize: false,
@@ -59,13 +62,7 @@ export const TransformationPage = () => {
                                     type: "tab",
                                     id: "matrix4",
                                     name: "Matrix4"
-                                }
-                            ]
-                        },
-                        {
-                            type: "tabset",
-                            id: "left4",
-                            children: [
+                                },
                                 {
                                     type: "tab",
                                     id: "matrix3",
@@ -81,6 +78,17 @@ export const TransformationPage = () => {
                                     type: "tab",
                                     id: "translation",
                                     name: "Translation"
+                                }
+                            ]
+                        },
+                        {
+                            type: "tabset",
+                            id: "left6",
+                            children: [
+                                {
+                                    type: "tab",
+                                    id: "clipboard",
+                                    name: "Copy and Paste"
                                 }
                             ]
                         }
@@ -112,43 +120,49 @@ export const TransformationPage = () => {
         switch (node.getId()) {
             case "quaternion":
                 return (
-                    <TileContextProvider appKey={"rotations"} tileKey={"quaternion"}>
+                    <TileContextProvider appKey={APP_KEY} tileKey={"quaternion"}>
                         <QuaternionTile />
                     </TileContextProvider>
                 )
             case "euler":
                 return (
-                    <TileContextProvider appKey={"rotations"} tileKey={"euler"}>
+                    <TileContextProvider appKey={APP_KEY} tileKey={"euler"}>
                         <EulerTile />
                     </TileContextProvider>
                 )
             case "matrix4":
                 return (
-                    <TileContextProvider appKey={"rotations"} tileKey={"matrix4"}>
+                    <TileContextProvider appKey={APP_KEY} tileKey={"matrix4"}>
                         <Matrix4Tile />
                     </TileContextProvider>
                 )
             case "matrix3":
                 return (
-                    <TileContextProvider appKey={"rotations"} tileKey={"matrix3"}>
+                    <TileContextProvider appKey={APP_KEY} tileKey={"matrix3"}>
                         <Matrix3Tile />
                     </TileContextProvider>
                 )
             case "translation":
                 return (
-                    <TileContextProvider appKey={"rotations"} tileKey={"translation"}>
+                    <TileContextProvider appKey={APP_KEY} tileKey={"translation"}>
                         <TranslationTile />
                     </TileContextProvider>
                 )
             case "scene":
                 return <ThreeTransformationViewTile />
+            case "clipboard":
+                return (
+                    <TileContextProvider appKey={APP_KEY} tileKey={"clipboard"}>
+                        <CopyPasteTile />
+                    </TileContextProvider>
+                )
         }
-        return <div>hello</div>
+        return <div>UNKNOWN TILE</div>
     }
 
     return (
         <TransformationProvider>
-            <GlobalBanner title={"3D Transformation Converter"} id="trconv" />
+            <GlobalBanner title={"3D Rotation Converter"} id="rotationconverter" />
             <Layout
                 model={Model.fromJson(model)}
                 factory={factory}

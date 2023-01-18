@@ -38,22 +38,25 @@ export const GlobalBanner = ({ title, id }) => {
         navigate("/" + item.key)
     }
 
-    const items: MenuProps["items"] = [
+    const all_items = [
         { key: "kinviz", label: "Kinematics Visualizer", onClick: go },
-        { key: "trconv", label: "Transformation Converter", onClick: go }
-    ].filter(item => item.key !== id)
+        { key: "rotationconverter", label: "3D Rotation Converter", onClick: go }
+    ]
+    const items: MenuProps["items"] = all_items.filter(item => item.key !== id)
 
     return (
         <StyledDiv>
             <div className="title">{title}</div>
-            <Dropdown menu={{ items }} className="more-tools">
-                <a onClick={e => e.preventDefault()}>
-                    <Space>
-                        More Tools
-                        <DownOutlined />
-                    </Space>
-                </a>
-            </Dropdown>
+            {all_items.some(item => item.key === id) && (
+                <Dropdown menu={{ items }} className="more-tools">
+                    <a onClick={e => e.preventDefault()}>
+                        <Space>
+                            More Tools
+                            <DownOutlined />
+                        </Space>
+                    </a>
+                </Dropdown>
+            )}
             <div className="glowbuzzer-link">
                 <a href="https://www.glowbuzzer.com">
                     <header>Brought to you by</header>

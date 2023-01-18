@@ -11,6 +11,7 @@ import { Button, Dropdown } from "antd"
 import { ToolbarButtonsPrecision } from "../../util/ToolbarButtonsPrecision"
 import { useTileContext } from "../../util/TileContextProvider"
 import { GlowbuzzerIcon } from "../../util/GlowbuzzerIcon"
+import { ToolbarButtonNormalize } from "../../util/ToolbarButtonNormalize"
 
 const StyledMenuItem = styled.div`
     padding: 0 0 4px 0;
@@ -112,11 +113,14 @@ export const QuaternionTile = () => {
         <div>
             <DockToolbar>
                 <DockToolbarButtonGroup>
+                    <ToolbarButtonNormalize onClick={normalize} />
+                </DockToolbarButtonGroup>
+                <ToolbarButtonsPrecision />
+                <DockToolbarButtonGroup>
                     <Dropdown menu={{ items }}>
                         <GlowbuzzerIcon Icon={CopyIcon} title="Copy to clipboard" button />
                     </Dropdown>
                 </DockToolbarButtonGroup>
-                <ToolbarButtonsPrecision />
             </DockToolbar>
             <StyledTile>
                 <div className="input-wrapper">
@@ -142,9 +146,6 @@ export const QuaternionTile = () => {
                         ))}
                     </div>
                 </div>
-                <Button size="small" onClick={normalize}>
-                    Normalize
-                </Button>
             </StyledTile>
         </div>
     )
