@@ -11,6 +11,7 @@ import { TranslationTile } from "./tiles/TranslationTile"
 import { Matrix3Tile } from "./tiles/Matrix3Tile"
 import { Matrix4Tile } from "./tiles/Matrix4Tile"
 import { CopyPasteTile } from "./tiles/CopyPasteTile"
+import { Helmet } from "react-helmet"
 
 const APP_KEY = "rotations"
 
@@ -21,7 +22,8 @@ export const RotationConverterPage = () => {
             borderBarSize: 1,
             borderSize: 1,
             tabBorderWidth: 1,
-            splitterSize: 5
+            splitterSize: 5,
+            tabEnableClose: false
         },
         layout: {
             type: "row",
@@ -162,6 +164,13 @@ export const RotationConverterPage = () => {
 
     return (
         <TransformationProvider>
+            <Helmet>
+                <title>3D Rotation Converter - by glowbuzzer</title>
+                <meta
+                    name="description"
+                    content="A tool to convert between different representations of 3D rotations"
+                />
+            </Helmet>
             <GlobalBanner title={"3D Rotation Converter"} id="rotationconverter" />
             <Layout
                 model={Model.fromJson(model)}

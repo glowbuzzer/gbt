@@ -20,6 +20,7 @@ import { ThreeDimensionalViewTile } from "./tiles/ThreeDimensionalViewTile"
 
 import { go_matrix } from "./ik/IkMath"
 import { compute_jinv } from "./ik/GenericSixdofKin"
+import { Helmet } from "react-helmet"
 
 export const KinVizTool = () => {
     const model: IJsonModel = {
@@ -132,6 +133,13 @@ export const KinVizTool = () => {
 
     return (
         <KinVizProvider>
+            <Helmet>
+                <title>Kinematics Visualizer - by glowbuzzer</title>
+                <meta
+                    name="description"
+                    content="A tool to visualize kinematics chains. Supports DH matrices"
+                />
+            </Helmet>
             <GlobalBanner title={"Kinematics Visualization Tool"} id="kinviz" />
             <Layout
                 model={Model.fromJson(model)}
