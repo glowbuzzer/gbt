@@ -56,8 +56,10 @@ export const TransformationProvider: FC<{ children }> = ({ children }) => {
         current.decompose(v, q, s)
 
         // compose and set
-        const matrix4 = new Matrix4().compose(v, quaternion, s)
-        setValue({ input: type, matrix4, euler })
+        const m4 = new Matrix4() // am not sure why but compose does not work here
+        m4.makeRotationFromQuaternion(quaternion)
+        m4.setPosition(v)
+        setValue({ input: type, matrix4: m4, euler })
     }
 
     const context: TransformationContextType = {

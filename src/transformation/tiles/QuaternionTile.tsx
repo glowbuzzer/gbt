@@ -72,9 +72,11 @@ export const QuaternionTile = () => {
     }, [update_shadow])
 
     function normalize() {
-        const { x, y, z, w } = quaternion
+        const [_x, _y, _z, _w] = edited
+        const normalized = new Quaternion(_x, _y, _z, _w).normalize()
+        const { x, y, z, w } = normalized
         setEdited([x, y, z, w])
-        setQuaternion(new Quaternion(x, y, z, w).normalize())
+        setQuaternion(normalized)
     }
 
     const cols = ["x", "y", "z", "w"]
