@@ -2,7 +2,7 @@ import * as React from "react"
 import { ReactComponent as GlowbuzzerLogo } from "./img/small-logo.svg"
 import styled from "styled-components"
 import { Dropdown, MenuProps, Select, Space } from "antd"
-import { DownOutlined } from "@ant-design/icons"
+import { DownOutlined, GithubOutlined } from "@ant-design/icons"
 import { useNavigate } from "react-router"
 
 const StyledDiv = styled.div`
@@ -22,6 +22,15 @@ const StyledDiv = styled.div`
     }
 
     .glowbuzzer-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .github {
+            border: 1px dotted rgba(0, 0, 0, 0.1);
+            padding: 4px 12px;
+        }
+
         a {
             display: flex;
             align-items: center;
@@ -58,6 +67,16 @@ export const GlobalBanner = ({ title, id }) => {
                 </Dropdown>
             )}
             <div className="glowbuzzer-link">
+                <a href={"https://www.github.com/glowbuzzer"} className="github">
+                    <Space>
+                        <div>
+                            View on
+                            <br />
+                            GitHub
+                        </div>
+                        <GithubOutlined style={{ fontSize: "24px", color: "#9254de" }} />
+                    </Space>
+                </a>
                 <a href="https://www.glowbuzzer.com">
                     <header>Brought to you by</header>
                     <GlowbuzzerLogo width={200} />

@@ -20,6 +20,7 @@ type TileContextType = {
 export const tileContext = createContext<TileContextType>()
 
 const StyledDiv = styled.div`
+    height: 100%;
     .ant-radio-button-checked {
         background: rgba(0, 0, 0, 0.05);
     }

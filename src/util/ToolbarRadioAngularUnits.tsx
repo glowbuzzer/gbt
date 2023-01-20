@@ -7,7 +7,7 @@ import { AngularUnits } from "../types"
 
 const DegreesIcon = () => {
     return (
-        <svg viewBox="0 0 202.133 202.133">
+        <svg viewBox="0 0 215 215" transform="translate(0.5,2)">
             <path
                 d="M181.154,26.653c-11.568,0-20.979,9.411-20.979,20.979s9.411,20.979,20.979,20.979c11.567,0,20.979-9.411,20.979-20.979
 		S192.722,26.653,181.154,26.653z M181.154,54.611c-3.849,0-6.979-3.131-6.979-6.979s3.131-6.979,6.979-6.979
@@ -66,7 +66,7 @@ const RadiansIcon = () => {
     )
 }
 
-export const ToolbarRadioAngularUnits = () => {
+export const ToolbarRadioAngularUnits = ({ disabled = false }) => {
     const { angularUnits, setAngularUnits } = useTileContext()
 
     function update_units(e) {
@@ -78,6 +78,7 @@ export const ToolbarRadioAngularUnits = () => {
             <GlowbuzzerIcon
                 Icon={DegreesIcon}
                 button
+                disabled={disabled}
                 checked={angularUnits === AngularUnits.DEG}
                 onClick={() => setAngularUnits(AngularUnits.DEG)}
                 title="Use Degrees"
@@ -85,6 +86,7 @@ export const ToolbarRadioAngularUnits = () => {
             <GlowbuzzerIcon
                 Icon={RadiansIcon}
                 button
+                disabled={disabled}
                 checked={angularUnits === AngularUnits.RAD}
                 onClick={() => setAngularUnits(AngularUnits.RAD)}
                 title="Use Radians"

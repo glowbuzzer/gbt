@@ -12,8 +12,6 @@ import { LoadSaveTile } from "./tiles/LoadSaveTile"
 
 import { GlobalBanner } from "../GlobalBanner"
 import { TileContextProvider } from "../util/TileContextProvider"
-import { QuaternionTile } from "../transformation/tiles/QuaternionTile"
-import { EulerTile } from "../transformation/tiles/EulerTile"
 import { ControlsTile } from "./tiles/ControlsTile"
 
 import { ThreeDimensionalViewTile } from "./tiles/ThreeDimensionalViewTile"

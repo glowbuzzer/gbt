@@ -1,13 +1,14 @@
 import React, { createContext, FC, useContext, useEffect, useMemo, useState } from "react"
 import { Euler, Matrix3, Matrix4, Quaternion, Vector3 } from "three"
+import { useLocalStorage } from "../util/LocalStorageHook"
 
 export enum TransformationInput {
     NONE,
     EULER,
     QUATERNION,
+    MATRIX4,
     MATRIX3,
-    VECTOR3,
-    MATRIX4
+    VECTOR3
 }
 
 type TransformationValues = {
@@ -29,22 +30,35 @@ type TransformationContextType = TransformationValues & {
 
 const transformationContext = createContext<TransformationContextType | null>(null)
 
+const DEFAULT_VALUE = {
+    input: TransformationInput.NONE,
+    matrix4: new Matrix4(),
+    euler: new Euler()
+}
+
+function marshall(value: TransformationValues): TransformationValues {
+    // the input looks like a three object but is just a pojo
+    return value
+        ? {
+              input: value.input,
+              matrix4: new Matrix4().copy(value.matrix4),
+              euler: new Euler().copy(value.euler)
+          }
+        : DEFAULT_VALUE
+}
+
 export const TransformationProvider: FC<{ children }> = ({ children }) => {
-    // TODO: put this in local storage (but issue with THREE instance serialization)
-    const [value, setValue] = useState<TransformationValues>({
-        input: TransformationInput.NONE,
-        matrix4: new Matrix4(),
-        euler: new Euler()
-    })
+    const [storedValue, setStoredValue] = useLocalStorage<TransformationValues>(
+        "rotations.value",
+        DEFAULT_VALUE
+    )
 
-    useEffect(() => {
-        function paste(event: ClipboardEvent) {
-            console.log("PASTE", event)
-        }
+    const [value, setValueInternal] = useState(marshall(storedValue))
 
-        document.addEventListener("paste", paste)
-        return () => document.removeEventListener("paste", paste)
-    }, [])
+    function setValue(update: TransformationValues) {
+        setStoredValue(update)
+        setValueInternal(update)
+    }
 
     function set_rotation(quaternion: Quaternion, euler: Euler, type: TransformationInput) {
         const current = value.matrix4 as Matrix4
