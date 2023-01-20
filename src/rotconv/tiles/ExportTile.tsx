@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useEffect, useState } from "react"
-import { Button, Select, Space, Tag } from "antd"
+import { Button, notification, Select, Space, Tag } from "antd"
 import { TransformationInput, useTransformation } from "../TransformationProvider"
 import TextArea from "antd/es/input/TextArea"
 import { CopyPasteFormat, format_labels, StyledCopyPasteDiv, type_labels_factory } from "./util"
@@ -23,6 +23,7 @@ export const ExportTile = () => {
     const { matrix4, input } = useTransformation()
     const { precision } = useTileContext()
     const { angularUnits } = useTileContext()
+    const [api, contextHolder] = notification.useNotification()
 
     const type_labels = type_labels_factory("Auto")
     const type_options = valuesOf(TransformationInput).map(key => ({
@@ -46,8 +47,18 @@ export const ExportTile = () => {
         }
     }, [matrix4, type, input, format, precision, angularUnits])
 
+    function do_copy() {
+        navigator.clipboard.writeText(copy).then(() => {
+            api.info({
+                message: `Copied to clipboard`,
+                placement: "bottom"
+            })
+        })
+    }
+
     return (
         <StyledCopyPasteDiv>
+            {contextHolder}
             <DockToolbar>
                 <ToolbarRadioAngularUnits
                     disabled={(type || input) !== TransformationInput.EULER}
@@ -77,7 +88,9 @@ export const ExportTile = () => {
                     />
                     {type === TransformationInput.NONE && <Tag>{TransformationInput[input]}</Tag>}
                 </Space>
-                <Button size="small">Copy</Button>
+                <Button size="small" onClick={do_copy}>
+                    Copy
+                </Button>
             </div>
         </StyledCopyPasteDiv>
     )
