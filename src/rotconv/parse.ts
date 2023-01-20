@@ -78,10 +78,12 @@ function array_to_conversions(value: number[], angularUnits: AngularUnits): Conv
         case 9:
             return {
                 [TransformationInput.MATRIX3]: () =>
-                    new Matrix4().setFromMatrix3(new Matrix3().fromArray(value))
+                    new Matrix4().setFromMatrix3(new Matrix3().fromArray(value).transpose())
             }
         case 16:
-            return { [TransformationInput.MATRIX4]: () => new Matrix4().fromArray(value) }
+            return {
+                [TransformationInput.MATRIX4]: () => new Matrix4().fromArray(value).transpose()
+            }
         default:
             return { [TransformationInput.NONE]: () => new Matrix4() }
     }

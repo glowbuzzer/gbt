@@ -11,7 +11,13 @@ export function export_matrix4(
     angularUnits: AngularUnits
 ): any {
     const fixed = value => (isNaN(Number(value)) ? value : value.toFixed(precision))
-    const arr = (o: Matrix4 | Matrix3 | Quaternion | Euler | Vector3) => o.toArray().map(fixed)
+    const arr = (o: Matrix4 | Matrix3 | Quaternion | Euler | Vector3) => {
+        if (o["isMatrix4"] || o["isMatrix3"]) {
+            // transpose to row major for export
+            return (o.clone() as Matrix3 | Matrix4).transpose().toArray().map(fixed)
+        }
+        return o.toArray().map(fixed)
+    }
     const units = value =>
         isNaN(Number(value)) || angularUnits === AngularUnits.RAD ? value : value * (180 / Math.PI)
 

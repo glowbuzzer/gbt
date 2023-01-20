@@ -67,7 +67,7 @@ export const GlobalBanner = ({ title, id }) => {
                 </Dropdown>
             )}
             <div className="glowbuzzer-link">
-                <a href={"https://www.github.com/glowbuzzer"} className="github">
+                <a href={"https://www.github.com/glowbuzzer/gbt"} className="github">
                     <Space>
                         <div>
                             View on
