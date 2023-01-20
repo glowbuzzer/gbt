@@ -422,7 +422,7 @@ export class go_matrix implements Igo_matrix {
         this.rows = rows
         this.cols = cols
         this.el = el
-        this.elcpy = el
+        this.elcpy = elcpy
         this.v = v
         this.index = index
     }

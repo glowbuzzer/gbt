@@ -61,14 +61,20 @@ export const KinVizTool = () => {
                             id: "middle1",
                             children: [
                                 {
-                                    type: "tabset",
-                                    id: "matrix",
-                                    name: "Matrix"
-                                },
-                                {
-                                    type: "tabset",
+                                    type: "tabs",
                                     id: "threeDimensionalView",
                                     name: "Three-dimensional view"
+                                }
+                            ]
+                        },
+                        {
+                            type: "tabset",
+                            id: "middle2",
+                            children: [
+                                {
+                                    type: "tabs",
+                                    id: "matrix",
+                                    name: "Matrix"
                                 }
                             ]
                         }
@@ -121,15 +127,15 @@ export const KinVizTool = () => {
     }
 
     // 4 5 −8 −5 −6 9 −2 −2 3
-
-    const testm: go_matrix = new go_matrix(3, 3, [
-        [0, -3, -2],
-        [1, -4, -2],
-        [-3, 4, 1]
-    ])
-    console.log("testm", testm)
-    const res = compute_jinv(testm)
-    console.log(res)
+    //
+    // const testm: go_matrix = new go_matrix(3, 3, [
+    //     [0, -3, -2],
+    //     [1, -4, -2],
+    //     [-3, 4, 1]
+    // ])
+    // console.log("testm", testm)
+    // const res = compute_jinv(testm)
+    // console.log(res)
 
     return (
         <KinVizProvider>

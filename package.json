@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "vite build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest",
+    "test:ui": "vitest --ui"
   },
   "keywords": [],
   "author": "",
@@ -33,5 +34,9 @@
     "three": "^0.148.0",
     "typescript": "^4.9.4",
     "vite": "^4.0.4"
+  },
+  "devDependencies": {
+    "@vitest/ui": "latest",
+    "vitest": "latest"
   }
 }
