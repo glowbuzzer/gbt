@@ -3,7 +3,6 @@
  */
 
 import { IJsonModel, Layout, Model, Node } from "flexlayout-react"
-import { GlobalLayout } from "../styles"
 import { KinVizProvider } from "./KinVizProvider"
 import * as React from "react"
 import { MatrixTile } from "./tiles/matrix/MatrixTile"
@@ -12,15 +11,14 @@ import { LoadSaveTile } from "./tiles/LoadSaveTile"
 
 import { GlobalBanner } from "../GlobalBanner"
 import { TileContextProvider } from "../util/TileContextProvider"
-import { QuaternionTile } from "../transformation/tiles/QuaternionTile"
-import { EulerTile } from "../transformation/tiles/EulerTile"
 import { ControlsTile } from "./tiles/ControlsTile"
 
 import { ThreeDimensionalViewTile } from "./tiles/ThreeDimensionalViewTile"
 
-import { go_matrix } from "./ik/IkMath"
-import { compute_jinv } from "./ik/GenericSixdofKin"
+import * as IK from "./ik/IkMath"
+import { KinematicsLink, LinkParamRepresentation, LinkQuantities } from "./ik/IkMath"
 import { Helmet } from "react-helmet"
+import { computeForwardJacobian } from "./ik/ForwardJacobian"
 
 export const KinVizTool = () => {
     const model: IJsonModel = {
@@ -125,17 +123,6 @@ export const KinVizTool = () => {
         }
         return <div>hello</div>
     }
-
-    // 4 5 −8 −5 −6 9 −2 −2 3
-    //
-    // const testm: go_matrix = new go_matrix(3, 3, [
-    //     [0, -3, -2],
-    //     [1, -4, -2],
-    //     [-3, 4, 1]
-    // ])
-    // console.log("testm", testm)
-    // const res = compute_jinv(testm)
-    // console.log(res)
 
     return (
         <KinVizProvider>

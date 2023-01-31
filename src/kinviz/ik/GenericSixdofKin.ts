@@ -2,13 +2,39 @@
  * Copyright (c) 2023. Glowbuzzer. All rights reserved
  */
 
+/*
+
+int compute_jfwd(go_link * link_params,int link_number,go_matrix * Jfwd,go_pose * T_L_0)
+
+int compute_jinv(go_matrix * Jfwd, go_matrix * Jinv)
+
+
+int genser_kin_jac_inv(void *kins,const go_pose * pos,const go_screw * vel, const go_real * joints, go_real * jointvels)
+calls jointSet, genser_kin_compute_jfwd, genser_kin_compute_jinv
+>>not sure what calls this
+
+
+int genserKinematicsInverse(const EmcPose * world,double *joints,const KINEMATICS_INVERSE_FLAGS * iflags,KINEMATICS_FORWARD_FLAGS * fflags)
+calls compute_jwd compute_jinv and genser_kin_fwd
+
+int genser_kin_jac_fwd(void *kins,const go_real * joints,const go_real * jointvels, const go_pose * pos, go_screw * vel)
+??not sure what calls this
+
+int genserKinematicsForward(const double *joint, EmcPose * world, const KINEMATICS_FORWARD_FLAGS * fflags,KINEMATICS_INVERSE_FLAGS * iflags)
+calls genser_kin_fwd
+
+int genser_kin_fwd(void *kins, const go_real * joints, go_pose * pos)
+calls jointSet and poseBuild
+
+ */
+
 import {
     go_cart,
     go_cart_vector_convert,
     go_dh_pose_convert,
-    go_link,
-    go_matrix,
-    go_pose,
+    KinematicsLink,
+    MatrixN,
+    Pose,
     go_matrix_inv,
     go_matrix_matrix_add,
     go_matrix_matrix_copy,
@@ -82,31 +108,12 @@ const total_joints = 6
 // #define ALPHA(i) (*(haldata->alpha[i]))
 // #define D(i) (*(haldata->d[i]))
 
-interface Igenser {
-    links: go_link[] /*!< The link description of the device. */
-    link_num: number /*!< How many are actually present. */
-    iterations: number /*!< How many iterations were actually used to compute the inverse kinematics. */
-    max_iterations: number /*!< Number of iterations after which to give up and report an error. */
-}
-
-class genser implements Igenser {
-    links: go_link[]
-    link_num: number
-    iterations: number
-    max_iterations: number
-
-    constructor(
-        links: go_link[] = [],
-        link_num: number = 0,
-        iterations: number = 0,
-        max_iterations: number = 0
-    ) {
-        this.links = []
-        this.link_num = 0
-        this.iterations = 0
-        this.max_iterations = 0
-    }
-}
+// interface Igenser {
+//     links: KinematicsLink[] /*!< The link description of the device. */
+//     link_num: number /*!< How many are actually present. */
+//     iterations: number /*!< How many iterations were actually used to compute the inverse kinematics. */
+//     max_iterations: number /*!< Number of iterations after which to give up and report an error. */
+// }
 
 const GENSER_MAX_JOINTS = 6
 
@@ -123,7 +130,7 @@ function genser_kin_init() {
         gens.links[t].dh.alpha = machine_data.alpha[t]
         gens.links[t].dh.d = machine_data.d[t]
         gens.links[t].dh.theta = 0
-        gens.links[t].type = LinkParamRepresentation.GO_LINK_DH
+        gens.links[t].type = LinkParamRepresentation.LINK_DH
         gens.links[t].unrotate = 0
     }
 
@@ -138,18 +145,18 @@ function genser_kin_init() {
    (sometimes only the pseudoinverse) and to use that for the inverse kinematics.
 */
 function compute_jfwd(
-    link_params: go_link[],
+    link_params: KinematicsLink[],
     link_number: number,
-    Jfwd: go_matrix,
-    T_L_0: go_pose
+    Jfwd: MatrixN,
+    T_L_0: Pose
 ): number {
-    var Jv = new go_matrix(3, link_number)
-    var Jw = new go_matrix(3, link_number)
-    const R_i_ip1 = new go_matrix(3, 3)
-    const scratch = new go_matrix(3, link_number)
+    var Jv = new MatrixN(3, link_number)
+    var Jw = new MatrixN(3, link_number)
+    const R_i_ip1 = new MatrixN(3, 3)
+    const scratch = new MatrixN(3, link_number)
     // const R_inv = new go_matrix(3, 3)
 
-    var pose: go_pose
+    var pose: Pose
     var quat: go_quat
 
     const P_ip1_i = new go_vector(3)
@@ -158,12 +165,12 @@ function compute_jfwd(
     Jv.el[2][0] = LinkQuantities.GO_QUANTITY_LENGTH == link_params[0].quantity ? 1 : 0
     Jw.el[0][0] = 0
     Jw.el[1][0] = 0
-    Jw.el[2][0] = LinkQuantities.GO_QUANTITY_ANGLE == link_params[0].quantity ? 1 : 0
+    Jw.el[2][0] = LinkQuantities.QUANTITY_ANGLE == link_params[0].quantity ? 1 : 0
 
     //     /* initialize inverse rotational transform */
-    if (LinkParamRepresentation.GO_LINK_DH == link_params[0].type) {
+    if (LinkParamRepresentation.LINK_DH == link_params[0].type) {
         const { ret, pout: pose } = go_dh_pose_convert(link_params[0].dh)
-    } else if (LinkParamRepresentation.GO_LINK_PP == link_params[0].type) {
+    } else if (LinkParamRepresentation.LINK_PP == link_params[0].type) {
         const pose = link_params[0].pp.pose
     } else {
         return retval.GO_RESULT_IMPL_ERROR
@@ -183,9 +190,9 @@ function compute_jfwd(
     var ret1
     for (let col = 1; col < link_number; col++) {
         /* T_ip1_i */
-        if (LinkParamRepresentation.GO_LINK_DH == link_params[col].type) {
+        if (LinkParamRepresentation.LINK_DH == link_params[col].type) {
             ;({ ret: ret1, pout: pose } = go_dh_pose_convert(link_params[col].dh))
-        } else if (LinkParamRepresentation.GO_LINK_PP == link_params[col].type) {
+        } else if (LinkParamRepresentation.LINK_PP == link_params[col].type) {
             pose = link_params[col].pp.pose
         } else {
             return retval.GO_RESULT_IMPL_ERROR
@@ -217,11 +224,11 @@ function compute_jfwd(
 
         Jw.el[0][col] = 0
         Jw.el[1][col] = 0
-        Jw.el[2][col] = LinkQuantities.GO_QUANTITY_ANGLE == link_params[col].quantity ? 1 : 0
+        Jw.el[2][col] = LinkQuantities.QUANTITY_ANGLE == link_params[col].quantity ? 1 : 0
 
-        if (LinkParamRepresentation.GO_LINK_DH == link_params[col].type) {
+        if (LinkParamRepresentation.LINK_DH == link_params[col].type) {
             ;({ pout: pose } = go_dh_pose_convert(link_params[col].dh))
-        } else if (LinkParamRepresentation.GO_LINK_PP == link_params[col].type) {
+        } else if (LinkParamRepresentation.LINK_PP == link_params[col].type) {
             pose = link_params[col].pp.pose
         } else {
             return retval.GO_RESULT_IMPL_ERROR
@@ -250,10 +257,10 @@ function compute_jfwd(
     return retval.GO_RESULT_OK
 }
 
-export function compute_jinv(Jfwd: go_matrix): { res: number; Jinv: go_matrix } {
-    var Jinv: go_matrix
+export function compute_jinv(Jfwd: MatrixN): { res: number; Jinv: MatrixN } {
+    var Jinv: MatrixN
     var res1: number
-    console.log("m2", Jfwd)
+    // console.log("m2", Jfwd)
     // const JJT= new go_matrix(6, 6)
     // const JT = new go_matrix(6, 6)
     //     /* compute inverse, or pseudo-inverse */
@@ -300,11 +307,11 @@ export function compute_jinv(Jfwd: go_matrix): { res: number; Jinv: go_matrix } 
     return { res: retval.GO_RESULT_OK, Jinv }
 }
 
-function genser_kin_jac_inv(pos: go_pose, vel: go_screw, joints: number[], jointvels: number[]) {
-    const Jfwd = new go_matrix(6, 6)
-    const Jinv = new go_matrix(6, 6)
-    const T_L_0 = new go_pose()
-    const linkout: go_link[] = []
+function genser_kin_jac_inv(pos: Pose, vel: go_screw, joints: number[], jointvels: number[]) {
+    const Jfwd = new MatrixN(6, 6)
+    const Jinv = new MatrixN(6, 6)
+    const T_L_0 = new Pose()
+    const linkout: KinematicsLink[] = []
 
     // const vw: number[]
     // for (let link = 0; link < genser.link_num; link++) {
@@ -495,15 +502,15 @@ function genser_kin_jac_inv(pos: go_pose, vel: go_screw, joints: number[], joint
     }
 
     function genserKinematicsInverse(world: EmcPose, joints: number[]) {
-        const Jfwd = new go_matrix(6, 6)
-        const Jinv = new go_matrix(6, 6)
-        const T_L_0 = new go_pose()
+        const Jfwd = new MatrixN(6, 6)
+        const Jinv = new MatrixN(6, 6)
+        const T_L_0 = new Pose()
         const vw: number[] = []
         const jest: number[] = []
         const dj: number[] = []
-        const pest = new go_pose()
-        const pestinv = new go_pose()
-        const Tdelta = new go_pose()
+        const pest = new Pose()
+        const pestinv = new Pose()
+        const Tdelta = new Pose()
         const rpy = new go_rpy()
         const rvec = new go_rvec()
         const cart = new go_cart()

@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@vitest/ui": "latest",
-    "vitest": "latest"
+    "vitest": "latest",
+    "@vitest/coverage-c8": "latest"
   }
 }
