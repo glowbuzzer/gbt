@@ -1,6 +1,6 @@
 import React from "react"
 import { BrowserRouter, Route, Routes } from "react-router-dom"
-import { RotationConverterPage } from "./transformation/RotationConverterPage"
+import { RotationConverterPage } from "./rotconv/RotationConverterPage"
 import { GlobalLayout } from "./styles"
 import { KinVizTool } from "./kinviz/KinVizTool"
 import { HomePage } from "./HomePage"

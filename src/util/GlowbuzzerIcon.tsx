@@ -80,7 +80,7 @@ export const GlowbuzzerIcon = (props: CustomIconProps) => {
         </StyledIcon>
     )
     return title ? (
-        <Tooltip title={title} placement={"bottomLeft"} arrowPointAtCenter={true}>
+        <Tooltip title={title} placement={"topLeft"} arrowPointAtCenter={true}>
             {el}
         </Tooltip>
     ) : (

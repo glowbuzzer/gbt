@@ -60,9 +60,13 @@ export const EulerTile = () => {
 
     function update_euler_order(new_order) {
         // re-create the values and euler from quaternion but with new order
-        const new_euler = new Euler().setFromQuaternion(quaternion, new_order)
-        const update = [new_euler.x, new_euler.y, new_euler.z].map(toLocalAngularUnits)
-        set_all(update, new_order)
+        if (orderLocked) {
+            set_all(edited, new_order)
+        } else {
+            const new_euler = new Euler().setFromQuaternion(quaternion, new_order)
+            const update = [new_euler.x, new_euler.y, new_euler.z].map(toLocalAngularUnits)
+            set_all(update, new_order)
+        }
     }
 
     const order_options = [
@@ -117,8 +121,8 @@ export const EulerTile = () => {
                                     onClick={toggle_locked}
                                     title={
                                         orderLocked
-                                            ? "Don't change axes with order"
-                                            : "Change axes with order"
+                                            ? "Change axis values with order"
+                                            : "Lock axis values"
                                     }
                                 />
                             </Space>
