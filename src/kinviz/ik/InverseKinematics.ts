@@ -50,7 +50,15 @@ export function inverseKinematics(
         const linkout: NMATH.KinematicsLink[] = []
 
         /* update the Jacobians */
-        console.log("jest", jest[0], jest[1], jest[2], jest[3], jest[4], jest[5])
+        console.log(
+            "jest",
+            (jest[0] * 180) / Math.PI,
+            (jest[1] * 180) / Math.PI,
+            (jest[2] * 180) / Math.PI,
+            (jest[3] * 180) / Math.PI,
+            (jest[4] * 180) / Math.PI,
+            (jest[5] * 180) / Math.PI
+        )
         console.log(
             "world",
             worldV3.x,
@@ -85,10 +93,10 @@ export function inverseKinematics(
         const { Jinv: Jinv } = computeInverseJacobian(Jfwd)
 
         /* pest is the resulting pose estimate given joint estimate */
-        const { pose: pest } = forwardKinematics(genser, jest)
+        // const { pose: pest } = forwardKinematics(genser, jest)
 
         // todo to need to call forwardKinematics??
-        // const pest = T_L_0
+        const pest = new THREE.Matrix4().copy(T_L_0)
         // console.log("T_L_0", T_L_0)
         // console.log("pest", pest)
 
@@ -278,7 +286,15 @@ export function inverseKinematics(
         //
         // const dj = nmDj.el
 
-        console.log("dj", dj)
+        console.log(
+            "dj (degrees)",
+            (dj[0] * 180) / Math.PI,
+            (dj[1] * 180) / Math.PI,
+            (dj[2] * 180) / Math.PI,
+            (dj[3] * 180) / Math.PI,
+            (dj[4] * 180) / Math.PI,
+            (dj[5] * 180) / Math.PI
+        )
 
         // const dvwTran = [[dvw[0][0], dvw[1][0], dvw[2][0], 0, 0, 0]]
         // const dvwRot = [[0, 0, 0, dvw[3][0], dvw[4][0], dvw[5][0]]]
@@ -326,6 +342,7 @@ export function inverseKinematics(
             /* converged, copy jest[] out */
             for (let link = 0; link < genser.link_num; link++) {
                 joints[link] = jest[link]
+                console.log("jest", (jest[link] * 180) / Math.PI)
             }
             console.log("Converged [iterations]", genser.iterations)
             return
@@ -337,14 +354,14 @@ export function inverseKinematics(
             // jest[link] += dj[link][0]
             jest[link] += dj[link]
 
-            if (NMATH.LinkQuantities.QUANTITY_ANGLE == linkout[link].quantity) {
-                if (jest[link] > Math.PI) jest[link] -= Math.PI * 2
-                else if (jest[link] < -Math.PI) jest[link] += Math.PI * 2
-            }
+            // if (NMATH.LinkQuantities.QUANTITY_ANGLE == linkout[link].quantity) {
+            //     if (jest[link] > Math.PI) jest[link] -= Math.PI * 2
+            //     else if (jest[link] < -Math.PI) jest[link] += Math.PI * 2
+            // }
         }
     } /* for (iterations) */
 
-    console.log("failed to convergse [iterations]", genser.iterations)
+    console.log("failed to converge [iterations]", genser.iterations)
 }
 
 // Jinv=a,dvw=v, dj=avx

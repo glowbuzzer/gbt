@@ -52,8 +52,8 @@ test("InverseKinematics TX40 - Modified", () => {
     // const worldV3 = new THREE.Vector3(315.87, 66.3, 244.02)
     // const worldQ = new THREE.Quaternion(0.0311703, 0.6474601, 0.0119963, 0.7613671)
 
-    const worldV3 = new THREE.Vector3(111, -60, 450)
-    const worldQ = new THREE.Quaternion(0.0311703, 0.6474601, 0.0119963, 0.7613671)
+    const worldV3 = new THREE.Vector3(243.93, 360.56, 126.6)
+    const worldQ = new THREE.Quaternion(0.1315, 0.856, 0.4999, -0.00875)
 
     //[11.31, 80.63, -7.8] = [ 0.0311703, 0.6474601, 0.0119963, 0.7613671 ]
 
@@ -61,13 +61,13 @@ test("InverseKinematics TX40 - Modified", () => {
 
     //one of 8 configs
     const joints = [
-        -50 * (Math.PI / 180),
-        (0.6 * Math.PI) / 180 - Math.PI / 2,
-        (30 * Math.PI) / 180 + Math.PI / 2,
-        (-200 * Math.PI) / 180,
-        (37.24 * Math.PI) / 180,
+        45 * (Math.PI / 180),
+        (45 * Math.PI) / 180 - Math.PI / 2,
+        (45 * Math.PI) / 180 + Math.PI / 2,
+        (45 * Math.PI) / 180,
+        (45 * Math.PI) / 180,
         // 127.39 * (Math.PI / 180) //original
-        180.3 * (Math.PI / 180) //mod
+        45 * (Math.PI / 180) //mod
     ]
 
     // const joints = [
@@ -81,9 +81,14 @@ test("InverseKinematics TX40 - Modified", () => {
     // 11.31,88.63-11.80
     inverseKinematics(staubliTx40Modified, world, joints)
 
+    const fwdCheck = forwardKinematics(staubliTx40Modified, joints)
+    const position = new THREE.Vector3().setFromMatrixPosition(fwdCheck.pose)
+    const orientation = new THREE.Quaternion().setFromRotationMatrix(fwdCheck.pose)
+
+    console.log("position - check from running fwdkin", position)
+    console.log("orientation - check from running fwdkin", orientation)
     joints[1] = joints[1] + Math.PI / 2
     joints[2] = joints[2] - Math.PI / 2
-
     console.log(
         "joints (adjusted)",
         joints.map(j => j * (180 / Math.PI))

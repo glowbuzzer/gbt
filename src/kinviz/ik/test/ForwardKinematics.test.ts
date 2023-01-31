@@ -7,8 +7,30 @@ import * as NAMTH from "../NMATH/index"
 import { computeForwardJacobian } from "../ForwardJacobian"
 import { staubliTx40Classic, staubliTx40Modified } from "../GenericSerialConfigs"
 import { forwardKinematics } from "../ForwardKinematics"
+import { computeForwardJacobianAlternative } from "../ForwardJacobianAlternative"
 
 describe("ForwardKinematics", () => {
+    test("ForwardKinematics TX40 Modfified random joints", () => {
+        const res = forwardKinematics(staubliTx40Modified, [
+            (-79.04036297267955 * Math.PI) / 180,
+            (-90.44381812369944 * Math.PI) / 180,
+            (107.90708526322177 * Math.PI) / 180,
+            (80.50891975261167 * Math.PI) / 180,
+            (77.40907321667963 * Math.PI) / 180,
+            (-13.788589025002363 * Math.PI) / 180
+        ])
+
+        const tcpEuler = new THREE.Euler().setFromRotationMatrix(res.pose)
+        console.log(
+            "tcpEuler",
+            (tcpEuler.x * 180) / Math.PI,
+            (tcpEuler.y * 180) / Math.PI,
+            (tcpEuler.z * 180) / Math.PI
+        )
+
+        console.log(res)
+    })
+
     test("ForwardKinematics TX40 Classic 0 joints", () => {
         // console.log(staubliTx40.links[1].dh)
 
@@ -94,6 +116,7 @@ describe("ForwardKinematics", () => {
         )
 
         const position = new THREE.Vector3().setFromMatrixPosition(res.pose)
+        console.log("position", position.x, position.y, position.z)
         const orientation = new THREE.Quaternion().setFromRotationMatrix(res.pose)
 
         expect(position.x).toBeCloseTo(315.87)

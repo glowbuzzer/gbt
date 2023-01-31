@@ -27,7 +27,7 @@ export default class KinematicsLink {
         // pp: PpParams = new PpParams(),
         body: Body = new Body(),
         type: LinkParamRepresentation = LinkParamRepresentation.LINK_DH,
-        quantity: LinkQuantities = LinkQuantities.GO_QUANTITY_LENGTH,
+        quantity: LinkQuantities = LinkQuantities.QUANTITY_LENGTH,
         unrotate: number = 0
     ) {
         this.type = type
@@ -101,7 +101,7 @@ export default class KinematicsLink {
             linkoutDh.dInitialOffset = thisDh.dInitialOffset
             linkoutDh.thetaInitialOffset = thisDh.thetaInitialOffset
 
-            if (this.quantity == LinkQuantities.GO_QUANTITY_LENGTH) {
+            if (this.quantity == LinkQuantities.QUANTITY_LENGTH) {
                 linkoutDh.d = joint //+ thisDh.dInitialOffset
                 linkoutDh.theta = thisDh.theta
             } else {
