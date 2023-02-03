@@ -21,4 +21,18 @@ export default class Body {
         this.mass = mass
         this.inertia = inertia
     }
+
+    copy(body: Body) {
+        this.mass = body.mass
+        this.inertia[0][0] = body.inertia[0][0]
+        this.inertia[0][1] = body.inertia[0][1]
+        this.inertia[0][2] = body.inertia[0][2]
+        this.inertia[1][0] = body.inertia[1][0]
+        this.inertia[1][1] = body.inertia[1][1]
+        this.inertia[1][2] = body.inertia[1][2]
+        this.inertia[2][0] = body.inertia[2][0]
+        this.inertia[2][1] = body.inertia[2][1]
+        this.inertia[2][2] = body.inertia[2][2]
+        return this
+    }
 }

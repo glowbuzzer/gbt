@@ -165,6 +165,61 @@ describe("MatrixN", () => {
             expect(a.add(b)).toEqual(c)
         })
     })
+
+    describe("transposeMatrix", () => {
+        test("transposeMatrix 3x3", () => {
+            const a: MatrixN = new MatrixN(3, 3, [
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9]
+            ])
+            const b: MatrixN = new MatrixN(3, 3, [
+                [1, 4, 7],
+                [2, 5, 8],
+                [3, 6, 9]
+            ])
+            const c: MatrixN = new MatrixN(3, 3)
+            expect(c.transposeMatrix(a)).toEqual(b)
+        })
+
+        test("transposeMatrix 4x2", () => {
+            const a: MatrixN = new MatrixN(4, 2, [
+                [5, 4],
+                [4, 0],
+                [7, 10],
+                [-1, 8]
+            ])
+
+            const b: MatrixN = new MatrixN(2, 4, [
+                [5, 4, 7, -1],
+                [4, 0, 10, 8]
+            ])
+
+            const c: MatrixN = new MatrixN(2, 4)
+            expect(c.transposeMatrix(a)).toEqual(b)
+        })
+
+        test("transposeMatrix 6x4", () => {
+            const a: MatrixN = new MatrixN(6, 4, [
+                [0, 0, 0, 0],
+                [-0.6, -0.275, 0, 0],
+                [-0.0, -0.0, 1.0, 0],
+                [0, 0, 0, 0],
+                [0.0, 0.0, 0, 0],
+                [-1.0, -1.0, 0, 1.0]
+            ])
+
+            const b: MatrixN = new MatrixN(4, 6, [
+                [0, -0.6, -0.0, 0, 0.0, -1.0],
+                [0, -0.275, -0.0, 0, 0.0, -1.0],
+                [0, 0, 1.0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1.0]
+            ])
+            const c: MatrixN = new MatrixN(4, 6)
+            expect(c.transposeMatrix(a)).toEqual(b)
+        })
+    })
+
     describe("transpose", () => {
         test("transpose single row", () => {
             const m1 = new MatrixN(1, 3, [[1, 2, 3]])

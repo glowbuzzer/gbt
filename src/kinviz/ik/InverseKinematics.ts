@@ -9,6 +9,7 @@ import { computeForwardJacobian } from "./ForwardJacobian"
 import { computeInverseJacobian } from "./InverseJacobian"
 import { forwardKinematics } from "./ForwardKinematics"
 import { computeForwardJacobianAlternative } from "./ForwardJacobianAlternative"
+import { jointsRemoveInitialOffset, jointsSetInitialOffset } from "./NMATH"
 
 /*
   Set ROTATE_JACOBIANS_BACK if you want the Jacobian matrix to be
@@ -26,7 +27,7 @@ export function inverseKinematics(
     world: THREE.Matrix4,
     joints: number[]
 ) {
-    const jest: number[] = []
+    // const jest: number[] = []
 
     var smalls: number
 
@@ -39,10 +40,12 @@ export function inverseKinematics(
     world.decompose(worldV3, worldQ, new THREE.Vector3())
 
     /* jest[] is a copy of joints[], which is the joint estimate */
-    for (let link = 0; link < genser.link_num; link++) {
-        // jest, and the rest of joint related calcs are in radians
-        jest[link] = joints[link]
-    }
+    // for (let link = 0; link < genser.link_num; link++) {
+    //     // jest, and the rest of joint related calcs are in radians
+    //     jest[link] = joints[link]
+    // }
+
+    const jest = jointsSetInitialOffset(joints, genser)
 
     // console.log(genser)
     for (genser.iterations = 0; genser.iterations < genser.max_iterations; genser.iterations++) {
@@ -82,16 +85,21 @@ export function inverseKinematics(
 
         // console.log("linkout", linkout)
 
-        const { Jfwd: Jfwd, T_L_0: T_L_0 } = computeForwardJacobianAlternative(
-            linkout,
-            genser.link_num
-        )
+        const { Jfwd: Jfwd, T_L_0: T_L_0 } = computeForwardJacobian(linkout, genser.link_num)
 
         // console.log("Jfwd", Jfwd)
         // console.log("T_L_0", T_L_0)
+        const Jinv = new NMATH.MatrixN(6, genser.link_num)
 
-        const { Jinv: Jinv } = computeInverseJacobian(Jfwd)
-
+        try {
+            Jinv.copy(computeInverseJacobian(Jfwd))
+        } catch (e) {
+            console.error(
+                "computeInverseJacobian: error encountered calculating inverse Jacobian: ",
+                e
+            )
+            throw e
+        }
         /* pest is the resulting pose estimate given joint estimate */
         // const { pose: pest } = forwardKinematics(genser, jest)
 
@@ -170,18 +178,17 @@ export function inverseKinematics(
         const tCart = new THREE.Vector3()
         Tdelta.decompose(tCart, new THREE.Quaternion(), new THREE.Vector3())
         const pestM3 = new THREE.Matrix3().setFromMatrix4(pest)
-        // cart.copy(Tdelta.tran)
-        // #ifdef ROTATE_JACOBIANS_BACK
-        console.log("tCart before rot back", tCart.x, tCart.y, tCart.z)
 
+        // console.log("tCart before rot back", tCart.x, tCart.y, tCart.z)
+        // pestM3.invert()
         if (ROTATE_JACOBIANS_BACK) {
             // cart.copy(Tdelta.tran.clone().applyQuaternion(pest.rot))
-            tCart.applyMatrix3(pestM3)
+            // tCart.applyMatrix3(pestM3)
             // go_quat_cart_mult(&pest.rot, &Tdelta.tran, &cart);
         } else {
             // cart = Tdelta.tran;
         }
-        console.log("tCart after rot back", tCart.x, tCart.y, tCart.z)
+        // console.log("tCart after rot back", tCart.x, tCart.y, tCart.z)
 
         dvw[0] = []
         dvw[1] = []
@@ -237,7 +244,7 @@ export function inverseKinematics(
 
         console.log("rCart before rot back", rCart.x, rCart.y, rCart.z)
         if (ROTATE_JACOBIANS_BACK) {
-            rCart.applyMatrix3(pestM3)
+            // rCart.applyMatrix3(pestM3)
             // go_quat_cart_mult(&pest.rot, &cart, &cart);
         }
         console.log("rCart after rot back", rCart.x, rCart.y, rCart.z)
@@ -340,10 +347,22 @@ export function inverseKinematics(
         }
         if (smalls == genser.link_num) {
             /* converged, copy jest[] out */
-            for (let link = 0; link < genser.link_num; link++) {
-                joints[link] = jest[link]
-                console.log("jest", (jest[link] * 180) / Math.PI)
-            }
+            console.log(
+                "jest",
+                jest.map(j => (j * 180) / Math.PI)
+            )
+            const adjustedKoints = jointsRemoveInitialOffset(jest, genser)
+            adjustedKoints.forEach((j, index) => {
+                joints[index] = j
+            })
+            console.log(
+                "joints",
+                joints.map(j => (j * 180) / Math.PI)
+            )
+            // for (let link = 0; link < genser.link_num; link++) {
+            //     joints[link] = jest[link]
+            //     console.log("jest", (jest[link] * 180) / Math.PI)
+            // }
             console.log("Converged [iterations]", genser.iterations)
             return
         }

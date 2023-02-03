@@ -43,8 +43,6 @@ export const ThreeDimensionalViewTile = () => {
         setRobotPos,
         robotRotE,
         setRobotRotE,
-        units,
-        setUnits,
         extents,
         setExtents
     } = useKinViz()
@@ -165,8 +163,6 @@ const LinkModel = () => {
         setRobotPos,
         robotRotE,
         setRobotRotE,
-        units,
-        setUnits,
         extents,
         setExtents
     } = useKinViz()

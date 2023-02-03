@@ -3,7 +3,7 @@
  */
 
 export enum LinkQuantities {
-    QUANTITY_NONE = 0,
+    QUANTITY_NONE = 0, //fixed joint
     QUANTITY_LENGTH,
     QUANTITY_ANGLE
 }

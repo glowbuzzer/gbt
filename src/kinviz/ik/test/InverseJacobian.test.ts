@@ -7,7 +7,7 @@ import * as THREE from "three"
 import * as NMATH from "../NMATH/index"
 import { computeInverseJacobian } from "../InverseJacobian"
 
-test("inverseJacobian", () => {
+test("inverseJacobian 6x6", () => {
     const forwardJacobian = new NMATH.MatrixN(6, 6, [
         [0.103, 0.5049, 0.4343, 0.0006, 0.0647, 0],
         [0.005, -0.3151, 0.0377, 0.0, -0.0, 0],
@@ -34,9 +34,71 @@ test("inverseJacobian", () => {
 
     const resInv = computeInverseJacobian(forwardJacobian)
     console.log(resInv)
-    console.log(resInv.Jinv.el)
+    console.log(resInv.el)
 
-    resInv.Jinv.el
+    resInv.el
+        .flatMap(e => e)
+        .forEach((e, i) => {
+            expect(e).toBeCloseTo(res.el.flat()[i], 1)
+        })
+})
+
+test("inverseJacobian 4x6", () => {
+    const forwardJacobian = new NMATH.MatrixN(6, 4, [
+        [0, 0, 0, 0],
+        [-0.6, -0.275, 0, 0],
+        [-0.0, -0.0, 1.0, 0],
+        [0, 0, 0, 0],
+        [0.0, 0.0, 0, 0],
+        [-1.0, -1.0, 0, 1.0]
+    ])
+
+    const res = new NMATH.MatrixN(4, 6, [
+        [-0.0, -1.709, -0.0, 0, 0.0, 0.1651],
+        [0.0, 0.0924, 0.0, 0, -0.0, -0.3603],
+        [0.0, -0.0, 1.0, 0, 0.0, -0.0],
+        [-0.0, -1.6166, -0.0, 0, 0.0, 0.8048]
+    ])
+
+    // const det = forwardJacobian.determinant()
+    // //0.0068
+    // console.log("det", det)
+
+    // expect(det).toBeCloseTo(0.0068)
+
+    const resInv = computeInverseJacobian(forwardJacobian)
+    console.log(resInv)
+    console.log(resInv.el)
+
+    resInv.el
+        .flatMap(e => e)
+        .forEach((e, i) => {
+            expect(e).toBeCloseTo(res.el.flat()[i], 1)
+        })
+})
+
+test("inverseJacobian 4x6 - 2", () => {
+    const forwardJacobian = new NMATH.MatrixN(6, 4, [
+        [0.325, 0.0, 0, 0],
+        [-0.2753, -0.275, 0, 0],
+        [-0.0, -0.0, 1.0, 0],
+        [0, 0, 0, 0],
+        [0.0, 0.0, 0, 0],
+        [-1.0, -1.0, 0, 1.0]
+    ])
+
+    const res = new NMATH.MatrixN(4, 6, [
+        [3.0769, 0.0, 0.0, 0, -0.0, 0.0],
+        [-3.0798, -3.6364, -0.0, 0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0, -0.0, -0.0],
+        [-0.0029, -3.6364, -0.0, 0, 0.0, 1.0]
+    ])
+
+    const resInv = computeInverseJacobian(forwardJacobian)
+    console.log(resInv)
+    console.log(resInv.el)
+
+    resInv.el
         .flatMap(e => e)
         .forEach((e, i) => {
             expect(e).toBeCloseTo(res.el.flat()[i], 1)

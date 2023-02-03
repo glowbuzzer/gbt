@@ -8,8 +8,8 @@ import { Euler, Quaternion } from "three"
 import niceColors from "nice-color-palettes"
 import { DhMatrixTypeEnum, ExtentValues, KinVizContextType } from "./tiles/types"
 import * as THREE from "three"
-import { DataType } from "./tiles/matrix/MatrixTile"
 import { defaultDhMatrix } from "./tiles/matrix/SampleDhMatrices"
+import * as NMATH from "./ik/nmath"
 
 // export enum RotationInput {
 //     NONE,
@@ -75,7 +75,9 @@ export const KinVizProvider: FC<{ children }> = ({ children }) => {
     //     })
     // }
 
-    const [dataSource, setDataSource] = useState<DataType[]>(defaultDhMatrix)
+    const [dataSource, setDataSource] = useState<NMATH.KinematicsLink[]>(
+        NMATH.staubliTx40Classic.links
+    )
 
     const [activeDhMatrixType, setActiveDhMatrixType] = useState<DhMatrixTypeEnum>(
         DhMatrixTypeEnum.DH_CLASSIC
@@ -83,7 +85,6 @@ export const KinVizProvider: FC<{ children }> = ({ children }) => {
 
     const [robotPos, setRobotPos] = useState<THREE.Vector3>(new THREE.Vector3(0, 0, 0))
     const [robotRotE, setRobotRotE] = useState<THREE.Euler>(new THREE.Euler(0, 0, 0))
-    const [units, setUnits] = useState(0)
 
     const [extents, setExtents] = useState(ExtentValues.MM500)
 
@@ -96,8 +97,6 @@ export const KinVizProvider: FC<{ children }> = ({ children }) => {
         setRobotPos,
         robotRotE,
         setRobotRotE,
-        units,
-        setUnits,
         extents,
         setExtents
     }

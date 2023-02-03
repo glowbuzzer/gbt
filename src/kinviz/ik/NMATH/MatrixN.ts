@@ -112,9 +112,9 @@ export default class MatrixN {
     }
 
     transpose() {
-        if (this.rows != this.cols) {
-            throw new Error("MatrixN.transpose() - rows != cols")
-        }
+        // // if (this.rows != this.cols) {
+        // //     throw new Error("MatrixN.transpose() - rows != cols")
+        // // }
         const thisClone = this.clone()
 
         const te = this.el
@@ -328,11 +328,6 @@ export default class MatrixN {
 */
     crossVector(v: THREE.Vector3) {
         const axv = new MatrixN(3, this.cols)
-        //
-        // if (a.rows != 3 || axv.rows != 3 || a.cols != axv.cols)
-        //     return { ret: retval.GO_RESULT_ERROR, axv: null }
-
-        // const vc = new go_cart(v[0], v[1], v[2])
 
         if (this.rows != 3) {
             throw new Error("MatrixN.crossVector() - rows != 3")
@@ -496,25 +491,13 @@ export default class MatrixN {
         // const v: MatrixN = new MatrixN(mCopy.cols, mCopy.rows)
         const N: number = this.rows
 
-        //     retval = ludcmp(m->elcpy, m->v, N, m->index, &d);
+        var d
 
-        // const res = ludcmp([].concat.apply([], m.elcpy), 0)
-
-        const res = Ludcmp(mCopy.el, false)
-
-        // console.log("res", res)
-        //     /* backsubstitute a column with a 1 in it to get the inverse */
-        //     for (col = 0; col < N; col++) {
-        //         for (row = 0; row < N; row++) {
-        //             m->v[row] = 0.0;
-        //         }
-        //         m->v[col] = 1.0;
-        //         retval = lubksb(m->elcpy, N, m->index, m->v);
-        //         if (GO_RESULT_OK != retval) return retval;
-        //         for (row = 0; row < N; row++) {
-        //             minv->el[row][col] = m->v[row];
-        //         }
-        //     }
+        // try {
+        d = Ludcmp(mCopy.el, false)
+        // } catch (e) {
+        //     console.log("e", e)
+        // }
 
         var vec = []
 
@@ -524,7 +507,7 @@ export default class MatrixN {
             }
             vec[col] = 1.0
 
-            const b = Lubksb(res, false, vec)
+            const b = Lubksb(d, false, vec)
 
             // console.log("retval", retval)
 

@@ -7,10 +7,14 @@ import { describe, it, assert, expect, test } from "vitest"
 import * as THREE from "three"
 import * as NMATH from "../NMATH"
 import { computeForwardJacobian } from "../ForwardJacobian"
-import { staubliTx40Modified, staubliTx40Classic } from "../GenericSerialConfigs"
+import {
+    staubliTx40Modified,
+    staubliTx40Classic,
+    adeptCobra600Classic
+} from "../GenericSerialConfigs"
 import { computeForwardJacobianAlternative } from "../ForwardJacobianAlternative"
 
-describe("ForwardJacobian - classic", () => {
+describe("ForwardJacobian", () => {
     test("ForwardJacobian TX40 - basic", () => {
         const res = computeForwardJacobian(staubliTx40Classic.links, 6)
         console.log("res", res)
@@ -435,7 +439,7 @@ describe("ForwardJacobian - classic", () => {
                 expect(e).toBeCloseTo(JfwdRes.flat()[i])
             })
     })
-
+    //no workie
     test("ForwardJacobian - 6 R IRB 140 - modified dh params - alternative", () => {
         const sixRlink1: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_MODIFIED_DH,
@@ -525,5 +529,45 @@ describe("ForwardJacobian - classic", () => {
             .forEach((e, i) => {
                 expect(e).toBeCloseTo(JfwdRes.flat()[i])
             })
+    })
+    test("adeptCobra600 0,0,0,0", () => {
+        // console.log("adeptCobra600Classic.links", adeptCobra600Classic.links)
+
+        const res = computeForwardJacobian(adeptCobra600Classic.links, 4)
+
+        // from matlab
+        // 0         0         0         0
+        // -0.6000   -0.2750         0         0
+        // -0.0000   -0.0000    1.0000         0
+        // 0         0         0         0
+        // 0.0000    0.0000         0         0
+        // -1.0000   -1.0000         0    1.0000
+
+        expect(res.Jfwd.el[0][0]).toBeCloseTo(0)
+        expect(res.Jfwd.el[0][1]).toBeCloseTo(0)
+        expect(res.Jfwd.el[0][2]).toBeCloseTo(0)
+        expect(res.Jfwd.el[0][3]).toBeCloseTo(0)
+        expect(res.Jfwd.el[1][0]).toBeCloseTo(-0.6)
+        expect(res.Jfwd.el[1][1]).toBeCloseTo(-0.275)
+        expect(res.Jfwd.el[1][2]).toBeCloseTo(0)
+        expect(res.Jfwd.el[1][3]).toBeCloseTo(0)
+        expect(res.Jfwd.el[2][0]).toBeCloseTo(0)
+        expect(res.Jfwd.el[2][1]).toBeCloseTo(0)
+        expect(res.Jfwd.el[2][2]).toBeCloseTo(1)
+        expect(res.Jfwd.el[2][3]).toBeCloseTo(0)
+        expect(res.Jfwd.el[3][0]).toBeCloseTo(0)
+        expect(res.Jfwd.el[3][1]).toBeCloseTo(0)
+        expect(res.Jfwd.el[3][2]).toBeCloseTo(0)
+        expect(res.Jfwd.el[3][3]).toBeCloseTo(0)
+        expect(res.Jfwd.el[4][0]).toBeCloseTo(0)
+        expect(res.Jfwd.el[4][1]).toBeCloseTo(0)
+        expect(res.Jfwd.el[4][2]).toBeCloseTo(0)
+        expect(res.Jfwd.el[4][3]).toBeCloseTo(0)
+        expect(res.Jfwd.el[5][0]).toBeCloseTo(-1)
+        expect(res.Jfwd.el[5][1]).toBeCloseTo(-1)
+        expect(res.Jfwd.el[5][2]).toBeCloseTo(0)
+        expect(res.Jfwd.el[5][3]).toBeCloseTo(1)
+
+        console.log("res.Jwf.el", res.Jfwd.el)
     })
 })

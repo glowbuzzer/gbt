@@ -8,7 +8,7 @@ import * as React from "react"
 import { MatrixTile } from "./tiles/matrix/MatrixTile"
 
 import { LoadSaveTile } from "./tiles/LoadSaveTile"
-
+import { JacobianTile } from "./tiles/JacobianTile"
 import { GlobalBanner } from "../GlobalBanner"
 import { TileContextProvider } from "../util/TileContextProvider"
 import { ControlsTile } from "./tiles/ControlsTile"
@@ -16,7 +16,7 @@ import { ControlsTile } from "./tiles/ControlsTile"
 import { ThreeDimensionalViewTile } from "./tiles/ThreeDimensionalViewTile"
 
 import * as IK from "./ik/IkMath"
-import { KinematicsLink, LinkParamRepresentation, LinkQuantities } from "./ik/IkMath"
+
 import { Helmet } from "react-helmet"
 import { computeForwardJacobian } from "./ik/ForwardJacobian"
 
@@ -87,6 +87,11 @@ export const KinVizTool = () => {
                             type: "tab",
                             id: "controls",
                             name: "Controls"
+                        },
+                        {
+                            type: "tab",
+                            id: "jacobian",
+                            name: "Jacobian"
                         }
                     ]
                 }
@@ -111,13 +116,19 @@ export const KinVizTool = () => {
             case "threeDimensionalView":
                 return (
                     <TileContextProvider appKey={"kinviz"} tileKey={"threeDimensionalView"}>
-                        <ThreeDimensionalViewTile />
+                        {/*<ThreeDimensionalViewTile />*/}
                     </TileContextProvider>
                 )
             case "controls":
                 return (
                     <TileContextProvider appKey={"kinviz"} tileKey={"controls"}>
-                        <ControlsTile />
+                        {/*<ControlsTile />*/}
+                    </TileContextProvider>
+                )
+            case "jacobian":
+                return (
+                    <TileContextProvider appKey={"kinviz"} tileKey={"jacobian"}>
+                        <JacobianTile />
                     </TileContextProvider>
                 )
         }

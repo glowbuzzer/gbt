@@ -7,7 +7,7 @@ import styled from "styled-components"
 import { PrecisionInput } from "../../../util/PrecisionInput"
 // import { useRotations } from "../RotationsProvider"
 import { Quaternion } from "three"
-import { useEffect, useState, useRef, useContext } from "react"
+import { useEffect, useState, useRef, useContext, useCallback } from "react"
 import { StyledTile } from "../styles"
 import { DockToolbar, DockToolbarButtonGroup } from "../../../util/DockToolbar"
 import { ReactComponent as CopyIcon } from "@material-symbols/svg-400/outlined/content_copy.svg"
@@ -15,18 +15,22 @@ import { ReactComponent as CopyIcon } from "@material-symbols/svg-400/outlined/c
 import { ToolbarRadioAngularUnits } from "../../../util/ToolbarRadioAngularUnits"
 import { ToolbarButtonsPrecision } from "../../../util/ToolbarButtonsPrecision"
 import { ToolbarSelectLinearUnits } from "../../../util/ToolbarSelectLinearUnits"
-import { useTileContext } from "../../../util/TileContextProvider"
+import { TileContextProvider, useTileContext } from "../../../util/TileContextProvider"
 import { LinearUnits } from "../../../types"
 
 import { Button, Form, InputNumber, Popconfirm, Select, Slider, Table, Tooltip } from "antd"
+import { HexColorPicker } from "react-colorful"
 
 // import "antd/dist/antd.css"
 import type { FormInstance } from "antd/es/form"
 import niceColors from "nice-color-palettes"
 import { sampleDhMatrices } from "./SampleDhMatrices"
-import { LinkTypeEnum, DhMatrixTypeEnum } from "../types"
+import { DhMatrixTypeEnum, TableDataType } from "../types"
 import * as THREE from "three"
 import { useKinViz } from "../../KinVizProvider"
+
+import * as NMATH from "../../ik/NMATH"
+import { DhParams } from "../../ik/NMATH"
 
 const StyledMenuItem = styled.div`
     padding: 0 0 4px 0;
@@ -45,13 +49,11 @@ const StyledMenuItem = styled.div`
         color: rgba(255, 255, 255, 0.7);
     }
 `
+const APP_KEY = "kinviz"
 
 export const MatrixTile = () => {
-    const { toLocalAngularUnits, toStandardAngularUnits, angularUnits, precision } =
-        useTileContext()
-
     return (
-        <>
+        <TileContextProvider appKey={APP_KEY} tileKey={"matrix"}>
             <DockToolbar>
                 <ToolbarRadioAngularUnits />
                 <ToolbarButtonsPrecision />
@@ -85,7 +87,7 @@ export const MatrixTile = () => {
             {/*        Normalize*/}
             {/*    </Button>*/}
             {/*</StyledTile>*/}
-        </>
+        </TileContextProvider>
     )
 }
 
@@ -99,18 +101,19 @@ interface EditableCellProps {
     fieldType: number
 }
 
-export interface DataType {
-    key: React.Key
-    alpha: number
-    theta: number
-    initialOffset: number
-    a: number
-    d: number
-    jointType: LinkTypeEnum
-    min: number
-    max: number
-    color: string
-}
+//
+// export interface DataType {
+//     key: React.Key
+//     alpha: number
+//     theta: number
+//     initialOffset: number
+//     a: number
+//     d: number
+//     jointType: NMATH.LinkQuantities
+//     min: number
+//     max: number
+//     color: string
+// }
 
 type ColumnTypes = Exclude<EditableTableProps["columns"], undefined>
 
@@ -121,9 +124,9 @@ interface Item {
     initialOffset: number
     a: number
     d: number
-    jointType: number
-    min: number
-    max: number
+    quantity: number
+    negativeLimit: number
+    positiveLimit: number
     color: string
 }
 
@@ -168,16 +171,16 @@ const RenderEditCell = () => {
     // )}
 }
 
-const RenderDisplayCell = ({ fieldType, children, jointType }) => {
+const RenderDisplayCell = ({ fieldType, children, quantity }) => {
     // console.log("fieldType", fieldType);
     switch (fieldType) {
         case 0: {
             return children
         }
         case 1: {
-            if (jointType == LinkTypeEnum.REVOLUTE) {
+            if (quantity == NMATH.LinkQuantities.QUANTITY_ANGLE) {
                 return "revolute"
-            } else if (jointType == LinkTypeEnum.PRISMATIC) {
+            } else if (quantity == NMATH.LinkQuantities.QUANTITY_LENGTH) {
                 return "prismatic"
             } else {
                 return "fixed"
@@ -265,9 +268,17 @@ const EditableCell: React.FC<EditableCellProps> = ({
                     <Select
                         ref={selectRef}
                         options={[
-                            { value: LinkTypeEnum.REVOLUTE, label: "revolute" },
-                            { value: LinkTypeEnum.PRISMATIC, label: "prismatic" },
-                            { value: LinkTypeEnum.FIXED, label: "fixed" }
+                            {
+                                key: 0,
+                                value: NMATH.LinkQuantities.QUANTITY_ANGLE,
+                                label: "revolute"
+                            },
+                            {
+                                key: 1,
+                                value: NMATH.LinkQuantities.QUANTITY_LENGTH,
+                                label: "prismatic"
+                            },
+                            { key: 2, value: NMATH.LinkQuantities.QUANTITY_NONE, label: "fixed" }
                         ]}
                         onChange={save}
                     />
@@ -282,7 +293,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
                 <RenderDisplayCell
                     fieldType={fieldType}
                     children={children}
-                    jointType={record.jointType}
+                    quantity={record.quantity}
                 />
             </div>
         )
@@ -291,8 +302,90 @@ const EditableCell: React.FC<EditableCellProps> = ({
     return <td {...restProps}>{childNode}</td>
 }
 
+function mapKinematicsLinkToTable(link: NMATH.KinematicsLink, index: number): TableDataType {
+    return {
+        key: index.toString(),
+        alpha: (link.params as NMATH.DhParams).alpha,
+        a: (link.params as NMATH.DhParams).a,
+        d: (link.params as NMATH.DhParams).d,
+        theta: (link.params as NMATH.DhParams).theta,
+        quantity: link.quantity,
+        color: "2",
+        negativeLimit: (link.params as NMATH.DhParams).negativeLimit,
+        positiveLimit: (link.params as NMATH.DhParams).positiveLimit,
+        thetaInitialOffset: (link.params as NMATH.DhParams).thetaInitialOffset,
+        dInitialOffset: (link.params as NMATH.DhParams).dInitialOffset
+    }
+}
+
+function mapTableToKinematicsLink(row: TableDataType, index: number): NMATH.KinematicsLink {
+    const newLink = new NMATH.KinematicsLink()
+    //todo handle d and theta offset
+    newLink.params = new NMATH.DhParams(
+        row.a,
+        row.alpha,
+        row.d,
+        row.dInitialOffset,
+        row.theta,
+        row.thetaInitialOffset,
+        row.positiveLimit,
+        row.negativeLimit
+    )
+    newLink.quantity = row.quantity
+    //todo switch mod dh
+    newLink.type = NMATH.LinkParamRepresentation.LINK_DH
+
+    return newLink
+}
+
+export const PopoverPicker = ({ color, onChange }) => {
+    const popover = useRef()
+    const [isOpen, toggle] = useState(false)
+
+    const close = useCallback(() => toggle(false), [])
+    // useClickOutside(popover, close)
+
+    return (
+        <div className="picker">
+            <div
+                className="swatch"
+                style={{ backgroundColor: color, width: 20, height: 20, borderRadius: 8 }}
+                onClick={() => toggle(true)}
+            />
+
+            {isOpen && (
+                <div
+                    className="popover"
+                    ref={popover}
+                    style={{ position: `fixed`, backgroundColor: "white" }}
+                >
+                    <HexColorPicker color={color} onChange={onChange} />
+                </div>
+            )}
+        </div>
+    )
+}
+
 export const TableApp = () => {
     const [count, setCount] = useState(sampleDhMatrices.length - 1)
+
+    const { angularUnits, precision, linearUnits } = useTileContext()
+    console.log("precision", precision)
+    console.log("angularUnits", angularUnits)
+    console.log("linearUnits", linearUnits)
+
+    //usEffect to update units when they change
+    useEffect(() => {
+        if (linearUnits == "mm") handleLinearUnitsChange(NMATH.LinearUnits.UNITS_MM)
+        else if (linearUnits == "cm") handleLinearUnitsChange(NMATH.LinearUnits.UNITS_CM)
+        else if (linearUnits == "m") handleLinearUnitsChange(NMATH.LinearUnits.UNITS_M)
+        else if (linearUnits == "in") handleLinearUnitsChange(NMATH.LinearUnits.UNITS_IN)
+    }, [linearUnits])
+
+    useEffect(() => {
+        if (angularUnits == "deg") handleAngularUnitsChange(NMATH.AngularUnits.UNITS_DEG)
+        else if (angularUnits == "rad") handleAngularUnitsChange(NMATH.AngularUnits.UNITS_RAD)
+    }, [angularUnits])
 
     const {
         dataSource,
@@ -303,23 +396,26 @@ export const TableApp = () => {
         setRobotPos,
         robotRotE,
         setRobotRotE,
-        units,
-        setUnits,
         extents,
         setExtents
     } = useKinViz()
 
     console.log("DS", dataSource)
 
+    const dataSourceReformatted = dataSource.map((row, index) => {
+        return mapKinematicsLinkToTable(row, index)
+    })
+    console.log(dataSourceReformatted)
     const handleDelete = (key: React.Key) => {
-        const newData = dataSource.filter(item => item.key !== key)
+        const newData = dataSource.filter((item, index) => index !== Number(key))
 
-        newData.forEach((row, index) => {
-            row.key = index.toString()
-        })
+        // newData.forEach((row, index) => {
+        //     row.key = index.toString()
+        // })
 
         setDataSource(newData)
     }
+    const [color, setColor] = useState("#aabbcc")
 
     const defaultColumns: (ColumnTypes[number] & {
         editable?: boolean
@@ -360,7 +456,11 @@ export const TableApp = () => {
             editable: true,
             fieldType: 0,
             ellipsis: true,
-            width: "5%"
+            width: "5%",
+            render: (_, record) =>
+                dataSource.length >= 1 ? (
+                    <div>{(record as TableDataType).alpha.toFixed(precision)}</div>
+                ) : null
         },
         {
             title: () => {
@@ -379,7 +479,11 @@ export const TableApp = () => {
             editable: true,
             fieldType: 0,
             ellipsis: true,
-            width: "5%"
+            width: "5%",
+            render: (_, record) =>
+                dataSource.length >= 1 ? (
+                    <div>{(record as TableDataType).theta.toFixed(precision)}</div>
+                ) : null
         },
         {
             title: () => {
@@ -387,17 +491,21 @@ export const TableApp = () => {
                     <div>
                         <Tooltip
                             placement="topLeft"
-                            title="Any offset applied to the joint. In degrees for revolute joints and mm/m for prismatic joints."
+                            title="Any offset applied to the joint - this applies to revolute joints only. Ignored for prismatic joints."
                         >
-                            Initial offset
+                            &theta; offset
                         </Tooltip>
                     </div>
                 )
             },
-            dataIndex: "initialOffset",
+            dataIndex: "thetaInitialOffset",
             editable: true,
             fieldType: 0,
-            ellipsis: true
+            ellipsis: true,
+            render: (_, record) =>
+                dataSource.length >= 1 ? (
+                    <div>{(record as TableDataType).thetaInitialOffset.toFixed(precision)}</div>
+                ) : null
         },
         {
             title: () => {
@@ -426,7 +534,11 @@ export const TableApp = () => {
             editable: true,
             fieldType: 0,
             ellipsis: true,
-            width: "5%"
+            width: "5%",
+            render: (_, record) =>
+                dataSource.length >= 1 ? (
+                    <div>{(record as TableDataType).a.toFixed(precision)}</div>
+                ) : null
         },
         {
             title: () => {
@@ -445,9 +557,38 @@ export const TableApp = () => {
             editable: true,
             fieldType: 0,
             ellipsis: true,
-            width: "5%"
+            width: "5%",
+            render: (_, record) =>
+                dataSource.length >= 1 ? (
+                    <div>{(record as TableDataType).d.toFixed(precision)}</div>
+                ) : null
         },
-
+        {
+            title: () => {
+                return (
+                    <div>
+                        <Tooltip
+                            placement="topLeft"
+                            title="Any offset applied to the joint - this applies to revolute joints only. Ignored for prismatic joints."
+                        >
+                            d offset
+                        </Tooltip>
+                    </div>
+                )
+            },
+            dataIndex: "dInitialOffset",
+            editable: true,
+            fieldType: 0,
+            ellipsis: true,
+            render: (_, record) =>
+                dataSource.length >= 1 ? (
+                    <div>
+                        {(record as TableDataType).quantity == NMATH.LinkQuantities.QUANTITY_LENGTH
+                            ? (record as TableDataType).dInitialOffset.toFixed(precision)
+                            : ""}
+                    </div>
+                ) : null
+        },
         {
             title: () => {
                 return (
@@ -461,7 +602,7 @@ export const TableApp = () => {
                     </div>
                 )
             },
-            dataIndex: "jointType",
+            dataIndex: "quantity",
             fieldType: 1,
             editable: true,
             ellipsis: true
@@ -479,10 +620,14 @@ export const TableApp = () => {
                     </div>
                 )
             },
-            dataIndex: "min",
+            dataIndex: "negativeLimit",
             editable: true,
             fieldType: 0,
-            ellipsis: true
+            ellipsis: true,
+            render: (_, record) =>
+                dataSource.length >= 1 ? (
+                    <div>{(record as TableDataType).negativeLimit.toFixed(precision)}</div>
+                ) : null
         },
         {
             title: () => {
@@ -497,10 +642,14 @@ export const TableApp = () => {
                     </div>
                 )
             },
-            dataIndex: "max",
+            dataIndex: "positiveLimit",
             editable: true,
             fieldType: 0,
-            ellipsis: true
+            ellipsis: true,
+            render: (_, record) =>
+                dataSource.length >= 1 ? (
+                    <div>{(record as TableDataType).positiveLimit.toFixed(precision)}</div>
+                ) : null
         },
 
         {
@@ -522,11 +671,12 @@ export const TableApp = () => {
             ellipsis: true,
             render: (_, record: { key: React.Key }) =>
                 dataSource.length >= 1 ? (
-                    <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" height="10" width="10">
-                            <circle cx="5" cy="5" r="5" strokeWidth={0} fill={record.color} />
-                        </svg>
-                    </div>
+                    // <div onClick={() => toggleColorPicker(true)}>
+                    //     <svg xmlns="http://www.w3.org/2000/svg" height="10" width="10">
+                    //         <circle cx="5" cy="5" r="5" strokeWidth={0} fill={record.color} />
+                    //     </svg>
+                    // </div>
+                    <PopoverPicker color={color} onChange={setColor} />
                 ) : null
         },
 
@@ -557,38 +707,47 @@ export const TableApp = () => {
         //     }
         // }
 
-        const newData: DataType = {
-            key: 9999,
-            alpha: 0,
-            theta: 0,
-            initialOffset: 0,
-            a: 0,
-            d: 0,
-            jointType: 0,
-            min: -180,
-            max: 180,
-            color: niceColors.flat()[count]
-        }
+        // const newData: DataType = {
+        //     key: 9999,
+        //     alpha: 0,
+        //     theta: 0,
+        //     initialOffset: 0,
+        //     a: 0,
+        //     d: 0,
+        //     jointType: 0,
+        //     min: -180,
+        //     max: 180,
+        //     color: niceColors.flat()[count]
+        // }
+
+        const newData: NMATH.KinematicsLink = new NMATH.KinematicsLink()
+
         // >>>> // setDataSource([...dataSource, newData]) this triggers render
 
         const reindexedData = [...dataSource, newData]
 
         // reindexedData.push(newData)
 
-        reindexedData.forEach((row, index) => {
-            row.key = index.toString()
-        })
+        // reindexedData.forEach((row, index) => {
+        //     row.key = index.toString()
+        // })
 
         setDataSource(reindexedData)
     }
 
-    const handleSave = (row: DataType) => {
+    const handleSave = (row: TableDataType) => {
+        //row contains table formatted data with change in it
+        console.log("row", row)
+        const newrow: NMATH.KinematicsLink = mapTableToKinematicsLink(row, 0)
+        console.log("newrow", newrow)
         const newData = [...dataSource]
-        const index = newData.findIndex(item => row.key === item.key)
+
+        // const index = newData.findIndex(item => row.key === item.key)
+        const index = Number(row.key)
         const item = newData[index]
         newData.splice(index, 1, {
             ...item,
-            ...row
+            ...newrow
         })
         setDataSource(newData)
     }
@@ -600,13 +759,36 @@ export const TableApp = () => {
         }
     }
 
+    // const mapColumns = col => {
+    //     if (!col.editable) {
+    //         return col
+    //     }
+    //     const newCol = {
+    //         ...col,
+    //         onCell: record => ({
+    //             record,
+    //             editable: col.editable,
+    //             dataIndex: col.dataIndex,
+    //             title: col.title,
+    //             handleSave,
+    //             fieldType: col.fieldType
+    //         })
+    //     }
+    //     if (col.children) {
+    //         newCol.children = col.children.map(mapColumns)
+    //     }
+    //     return newCol
+    // }
+    //
+    // const columns = defaultColumns.map(mapColumns)
+
     const columns = defaultColumns.map(col => {
         if (!col.editable) {
             return col
         }
         return {
             ...col,
-            onCell: (record: DataType) => ({
+            onCell: (record: TableDataType) => ({
                 record,
                 editable: col.editable,
                 dataIndex: col.dataIndex,
@@ -657,32 +839,86 @@ export const TableApp = () => {
     //   },
     // ];
 
-    const handleUnitsChange = e => {
-        setUnits(e)
-        console.log(e)
-
+    const handleAngularUnitsChange = e => {
         const newData = [...dataSource]
 
         newData.forEach((row, index) => {
             const item = newData[index]
 
-            if (e == 0) {
-                //mm
-                item.a *= 1000
-                item.d *= 1000
-                if (item.jointType == LinkTypeEnum.PRISMATIC) {
-                    item.min *= 1000
-                    item.max *= 1000
-                    item.initialOffset *= 1000
+            const paramsAsDh = item.params as DhParams
+            if (
+                e == NMATH.AngularUnits.UNITS_DEG &&
+                item.angularUnits != NMATH.AngularUnits.UNITS_DEG
+            ) {
+                //we are converting to degrees from radians
+                if (item.quantity == NMATH.LinkQuantities.QUANTITY_ANGLE) {
+                    //revolute
+                    paramsAsDh.alpha *= 180 / Math.PI
+                    paramsAsDh.theta *= 180 / Math.PI
+                    paramsAsDh.thetaInitialOffset *= 180 / Math.PI
+                    paramsAsDh.positiveLimit *= 180 / Math.PI
+                    paramsAsDh.negativeLimit *= 180 / Math.PI
+                    item.angularUnits = NMATH.AngularUnits.UNITS_DEG
+                } else if (item.quantity == NMATH.LinkQuantities.QUANTITY_LENGTH) {
+                    //prismatic
+                    //prismatic joints dont have a theta or theta offset
+                    paramsAsDh.alpha *= 180 / Math.PI
+                    item.angularUnits = NMATH.AngularUnits.UNITS_DEG
+                } else {
+                    //fixed
+                    //fixed joints dont have initial offset or limits
+                    paramsAsDh.alpha *= 180 / Math.PI
+                    paramsAsDh.theta *= 180 / Math.PI
+                    item.angularUnits = NMATH.AngularUnits.UNITS_DEG
+                }
+            } else if (
+                e == NMATH.AngularUnits.UNITS_RAD &&
+                item.angularUnits != NMATH.AngularUnits.UNITS_RAD
+            ) {
+                //we are converting to radians from degrees
+                if (item.quantity == NMATH.LinkQuantities.QUANTITY_ANGLE) {
+                    //revolute
+
+                    paramsAsDh.alpha *= Math.PI / 180
+                    paramsAsDh.theta *= Math.PI / 180
+                    paramsAsDh.thetaInitialOffset *= Math.PI / 180
+                    paramsAsDh.positiveLimit *= Math.PI / 180
+                    paramsAsDh.negativeLimit *= Math.PI / 180
+                    item.angularUnits = NMATH.AngularUnits.UNITS_RAD
+                } else if (item.quantity == NMATH.LinkQuantities.QUANTITY_LENGTH) {
+                    //prismatic
+                    //prismatic joints dont have a theta or theta offset
+                    paramsAsDh.alpha *= Math.PI / 180
+                    item.angularUnits = NMATH.AngularUnits.UNITS_DEG
+                } else {
+                    //fixed
+                    paramsAsDh.alpha *= Math.PI / 180
+                    paramsAsDh.theta *= Math.PI / 180
+                    item.angularUnits = NMATH.AngularUnits.UNITS_DEG
+                }
+            }
+        })
+
+        setDataSource(newData)
+    }
+
+    const handleLinearUnitsChange = e => {
+        const newData = [...dataSource]
+
+        newData.forEach((row, index) => {
+            const item = newData[index]
+            if (e != item.linearUnits) {
+                if (item.quantity == NMATH.LinkQuantities.QUANTITY_LENGTH) {
+                    NMATH.convertLinearUnitsPrismatic(item, item.linearUnits, e)
+                } else if (item.quantity == NMATH.LinkQuantities.QUANTITY_ANGLE) {
+                    NMATH.convertLinearUnitsRevolute(item, item.linearUnits, e)
+                } else if (item.quantity == NMATH.LinkQuantities.QUANTITY_NONE) {
+                    NMATH.convertLinearUnitsFixed(item, item.linearUnits, e)
+                } else {
+                    throw new Error("MatrixTile: handleLinearUnitsChange: unknown units")
                 }
             } else {
-                item.a /= 1000
-                item.d /= 1000
-                if (item.jointType == LinkTypeEnum.PRISMATIC) {
-                    item.min /= 1000
-                    item.max /= 1000
-                    item.initialOffset /= 1000
-                }
+                //no units change
             }
 
             newData.splice(index, 1, {
@@ -756,16 +992,7 @@ export const TableApp = () => {
                 title={() => (
                     <>
                         <h2>Denavit–Hartenberg (DH) matrix</h2>
-                        <LabelSpan>Units for length dimensions of DH matrix</LabelSpan>
-                        <Select
-                            value={units}
-                            onSelect={e => handleUnitsChange(e)}
-                            options={[
-                                { value: 0, label: "mm" },
-                                { value: 1, label: "m" }
-                            ]}
-                            style={{ width: 75 }}
-                        />
+
                         <LabelSpan> Format for the DH matrix</LabelSpan>
                         <Select
                             options={[
@@ -781,7 +1008,7 @@ export const TableApp = () => {
                 components={components}
                 rowClassName={() => "editable-row"}
                 bordered
-                dataSource={dataSource}
+                dataSource={dataSourceReformatted}
                 columns={columns as ColumnTypes}
                 footer={() => (
                     <div

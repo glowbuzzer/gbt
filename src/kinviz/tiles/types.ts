@@ -4,6 +4,7 @@
 
 import * as THREE from "three"
 import { Dispatch, SetStateAction } from "react"
+import * as NMATH from "../ik/NMATH"
 
 export enum ExtentValues {
     MM200 = "200mm",
@@ -11,16 +12,17 @@ export enum ExtentValues {
     M2 = "2m"
 }
 
-export interface DataType {
+export interface TableDataType {
     key: React.Key
     alpha: number
     theta: number
-    initialOffset: number
+    dInitialOffset: number
+    thetaInitialOffset: number
     a: number
     d: number
-    jointType: LinkTypeEnum
-    min: number
-    max: number
+    quantity: NMATH.LinkQuantities
+    negativeLimit: number
+    positiveLimit: number
     color: string
 }
 
@@ -29,11 +31,11 @@ export enum DhMatrixTypeEnum {
     DH_MODIFIED
 }
 
-export enum LinkTypeEnum {
-    REVOLUTE,
-    PRISMATIC,
-    FIXED
-}
+// export enum LinkTypeEnum {
+//     REVOLUTE,
+//     PRISMATIC,
+//     FIXED
+// }
 export enum UnitsEnum {
     UNITS_MM,
     UNITS_M
@@ -49,7 +51,7 @@ export type SampleDhProps = {
     name: string
     matrixType: DhMatrixTypeEnum
     units: UnitsEnum
-    matrix: DataType[]
+    matrix: TableDataType[]
 }
 
 export type SampleDhSelectProps = {
@@ -67,16 +69,14 @@ type modifiedDh = {
 }
 
 export type KinVizContextType = {
-    dataSource: DataType[]
-    setDataSource: Dispatch<SetStateAction<DataType[]>>
+    dataSource: NMATH.KinematicsLink[]
+    setDataSource: Dispatch<SetStateAction<TableDataType[]>>
     activeDhMatrixType: DhMatrixTypeEnum
     setActiveDhMatrixType: Dispatch<SetStateAction<DhMatrixTypeEnum>>
     robotPos: THREE.Vector3
     setRobotPos: Dispatch<SetStateAction<THREE.Vector3>>
     robotRotE: THREE.Euler
     setRobotRotE: Dispatch<SetStateAction<THREE.Euler>>
-    units: UnitsEnum
-    setUnits: Dispatch<SetStateAction<UnitsEnum>>
     extents: ExtentValues
     setExtents: Dispatch<SetStateAction<ExtentValues>>
 }

@@ -35,14 +35,23 @@
 
 import * as THREE from "three"
 
-class go_urdf {
+export default class urdfParams {
     pose: THREE.Matrix4 /*!< the pose of the link wrt to the previous link */
     axis: THREE.Vector3 /*!< the axis of rotation or translation */
+    positiveLimit: number
+    negativeLimit: number
+    initialOffset: number
     constructor(
         pose: THREE.Matrix4 = new THREE.Matrix4(),
-        axis: THREE.Vector3 = new THREE.Vector3()
+        axis: THREE.Vector3 = new THREE.Vector3(),
+        positiveLimit: number = 0,
+        negativeLimit: number = 0,
+        initialOffset: number = 0
     ) {
         this.pose = pose
         this.axis = axis
+        this.positiveLimit = positiveLimit
+        this.negativeLimit = negativeLimit
+        this.initialOffset = initialOffset
     }
 }

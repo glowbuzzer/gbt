@@ -3,6 +3,9 @@
  */
 
 import * as THREE from "three"
+import KinematicsLink from "./KinematicsLink"
+import { LinkParamRepresentation } from "./LinkParamRepresentation"
+import { LinkQuantities } from "./LinkQuantities"
 
 // standard DH parameters, this is from the previous frame to the current.
 // modified DH parameters, this is from the current frame to the next
@@ -14,15 +17,17 @@ export default class DhParams {
     dInitialOffset: number
     theta: number
     thetaInitialOffset: number
-    // modified: boolean
+    positiveLimit: number
+    negativeLimit: number
     constructor(
         a: number,
         alpha: number,
         d: number,
         dinitialOffset: number,
         theta: number,
-        thetaInitialOffset: number
-        // modified: boolean
+        thetaInitialOffset: number,
+        positiveLimit: number = 0,
+        negativeLimit: number = 0
     ) {
         this.a = a
         this.alpha = alpha
@@ -30,7 +35,8 @@ export default class DhParams {
         this.dInitialOffset = dinitialOffset
         this.theta = theta
         this.thetaInitialOffset = thetaInitialOffset
-        // this.modified = modified
+        this.positiveLimit = positiveLimit
+        this.negativeLimit = negativeLimit
     }
 
     set(
@@ -39,8 +45,9 @@ export default class DhParams {
         d: number,
         dInitialOffset: number,
         theta: number,
-        thetaInitialOffset: number
-        // modified: boolean
+        thetaInitialOffset: number,
+        positiveLimit: number,
+        negativeLimit: number
     ) {
         this.a = a
         this.alpha = alpha
@@ -48,61 +55,10 @@ export default class DhParams {
         this.dInitialOffset = d
         this.theta = theta
         this.thetaInitialOffset = thetaInitialOffset
-        // this.modified = modified
+        this.positiveLimit = positiveLimit
+        this.negativeLimit = negativeLimit
     }
 
-    // toPoseMatrxi4(modified: boolean): THREE.Matrix4 {
-    //     const sth = Math.sin(this.theta)
-    //     const cth = Math.cos(this.theta)
-    //
-    //     const sal = Math.sin(this.alpha)
-    //     const cal = Math.cos(this.alpha)
-    //     var h: THREE.Matrix4 = new THREE.Matrix4()
-    //     //FOR CLASSIC
-    //     if (!modified) {
-    //         h = new THREE.Matrix4().set(
-    //             cth,
-    //             -sth * cal,
-    //             sth * sal,
-    //             this.a * cth,
-    //             sth,
-    //             cth * cal,
-    //             -cth * sal,
-    //             this.a * sth,
-    //             0,
-    //             sal,
-    //             cal,
-    //             this.d,
-    //             0,
-    //             0,
-    //             0,
-    //             1
-    //         )
-    //     } else {
-    //         //FOR MODIFIED
-    //         h = new THREE.Matrix4().set(
-    //             cth,
-    //             -sth,
-    //             0,
-    //             this.a,
-    //             sth * cal,
-    //             cth * cal,
-    //             -sal,
-    //             -sal * this.d,
-    //             sth * sal,
-    //             cth * sal,
-    //             cal,
-    //             cal * this.d,
-    //
-    //             0,
-    //             0,
-    //             0,
-    //             1
-    //         )
-    //     }
-    //
-    //     return h
-    // }
     toPose(modified: boolean) {
         const pose = new THREE.Matrix4()
 
@@ -161,23 +117,5 @@ export default class DhParams {
         // pose.rot.setFromEuler(toEuler)
 
         return pose
-
-        //
-        //
-        // h.rot.x.x = cth
-        // h.rot.y.x = -sth
-        // h.rot.z.x = 0.0
-        // h.rot.x.y = sth * cal
-        // h.rot.y.y = cth * cal
-        // h.rot.z.y = -sal
-        // h.rot.x.z = sth * sal
-        // h.rot.y.z = cth * sal
-        // h.rot.z.z = cal
-        //
-        // h.tran.x = dh.a
-        // h.tran.y = -sal * dh.d
-        //
-        // h.tran.z = cal * dh.d
-        // return go_hom_pose_convert(h)
     }
 }

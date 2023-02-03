@@ -41,8 +41,6 @@ export const LoadSaveTile = () => {
         setRobotPos,
         robotRotE,
         setRobotRotE,
-        units,
-        setUnits,
         extents,
         setExtents
     } = useKinViz()
@@ -51,7 +49,6 @@ export const LoadSaveTile = () => {
 
     const handleLoadPrecanned = () => {
         setDataSource(sampleDhMatrices[selectedPrecanned].matrix)
-        setUnits(sampleDhMatrices[selectedPrecanned].units)
         setActiveDhMatrixType(sampleDhMatrices[selectedPrecanned].matrixType)
     }
 

@@ -2,7 +2,7 @@
  * Copyright (c) 2023. Glowbuzzer. All rights reserved
  */
 
-import { DhParams, KinematicsLink, LinkParamRepresentation } from "./index"
+import { DhParams, PpParams, UrdfParams, KinematicsLink, LinkParamRepresentation } from "./index"
 import * as THREE from "three"
 export default function PoseBuild(
     link_params: KinematicsLink[],
@@ -18,9 +18,13 @@ export default function PoseBuild(
             p.copy((link_params[link].params as DhParams).toPose(true))
             pose.multiply(p)
         } else if (LinkParamRepresentation.LINK_PP == link_params[link].type) {
-            // const { ret: res3, pout: p3 } = go_pose_pose_mult(pose, link_params[link].pp.pose)
+            p.copy((link_params[link].params as PpParams).pose)
+            pose.multiply(p)
+        } else if (LinkParamRepresentation.LINK_URDF == link_params[link].type) {
+            p.copy((link_params[link].params as UrdfParams).pose)
+            pose.multiply(p)
         } else {
-            return { pose: null }
+            throw new Error("PoseBuild: unknown link type")
         }
     }
     return { pose: pose }

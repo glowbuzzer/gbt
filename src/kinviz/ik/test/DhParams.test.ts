@@ -18,10 +18,18 @@ describe("dhParams", () => {
         console.log(position)
         console.log(orientationQ)
         console.log(orientationE)
-        expect(position.y).toBeCloseTo(5)
+
+        expect(position.x).toBeCloseTo(5)
+        expect(position.y).toBeCloseTo(0)
+        expect(position.z).toBeCloseTo(5)
+
+        expect(orientationQ.x).toBeCloseTo(0.7071067811865475)
+        expect(orientationQ.y).toBeCloseTo(0)
+        expect(orientationQ.z).toBeCloseTo(0)
+        expect(orientationQ.w).toBeCloseTo(0.7071067811865475)
     })
     test("toPose - modified dh", () => {
-        const dh = new NMATH.DhParams(5, Math.PI / 2, 5, 0, 99, 0)
+        const dh = new NMATH.DhParams(5, Math.PI / 2, 5, 0, 0, 0)
 
         const pose = dh.toPose(true)
 
@@ -31,6 +39,14 @@ describe("dhParams", () => {
         console.log(position)
         console.log(orientationQ)
         console.log(orientationE)
-        expect(position.y).toBeCloseTo(5)
+
+        expect(position.x).toBeCloseTo(5)
+        expect(position.y).toBeCloseTo(-5)
+        expect(position.z).toBeCloseTo(0)
+
+        expect(orientationQ.x).toBeCloseTo(0.7071067811865475)
+        expect(orientationQ.y).toBeCloseTo(0)
+        expect(orientationQ.z).toBeCloseTo(0)
+        expect(orientationQ.w).toBeCloseTo(0.7071067811865475)
     })
 })

@@ -3,9 +3,9 @@
  */
 
 import niceColors from "nice-color-palettes"
-import { LinkTypeEnum, UnitsEnum, SampleDhProps, DataType } from "../types"
+import { LinkTypeEnum, UnitsEnum, SampleDhProps, TableDataType } from "../types"
 
-export const defaultDhMatrix: DataType[] = [
+export const defaultDhMatrix: TableDataType[] = [
     {
         key: "0",
         alpha: 45,
@@ -13,9 +13,9 @@ export const defaultDhMatrix: DataType[] = [
         initialOffset: 0,
         a: 150,
         d: 100,
-        jointType: 0,
-        min: -170,
-        max: 170,
+        quantity: 0,
+        negativeLimit: -170,
+        positiveLimit: 170,
         color: niceColors.flat()[0]
     },
     {
@@ -25,9 +25,9 @@ export const defaultDhMatrix: DataType[] = [
         initialOffset: 0,
         a: 100,
         d: 100,
-        jointType: 0,
-        min: -180,
-        max: 180,
+        quantity: 0,
+        negativeLimit: -180,
+        positiveLimit: 180,
         color: niceColors.flat()[1]
     }
 ]
@@ -45,9 +45,9 @@ export const sampleDhMatrices: SampleDhProps[] = [
                 initialOffset: 0,
                 a: 1.5,
                 d: 1,
-                jointType: 0,
-                min: -170,
-                max: 170,
+                quantity: 0,
+                negativeLimit: -170,
+                positiveLimit: 170,
                 color: niceColors.flat()[9]
             },
             {
@@ -57,9 +57,9 @@ export const sampleDhMatrices: SampleDhProps[] = [
                 initialOffset: 0,
                 a: 1,
                 d: 1,
-                jointType: 0,
-                min: -180,
-                max: 180,
+                quantity: 0,
+                negativeLimit: -180,
+                positiveLimit: 180,
                 color: niceColors.flat()[10]
             }
         ]
@@ -76,9 +76,9 @@ export const sampleDhMatrices: SampleDhProps[] = [
                 initialOffset: 0,
                 a: 0,
                 d: 0.77421,
-                jointType: 0,
-                min: -170,
-                max: 170,
+                quantity: 0,
+                negativeLimit: -170,
+                positiveLimit: 170,
                 color: niceColors.flat()[0]
             },
             {
@@ -88,9 +88,9 @@ export const sampleDhMatrices: SampleDhProps[] = [
                 initialOffset: 0,
                 a: 0.506628,
                 d: 0.101592,
-                jointType: 0,
-                min: -180,
-                max: 180,
+                quantity: 0,
+                negativeLimit: -180,
+                positiveLimit: 180,
                 color: niceColors.flat()[1]
             },
             {
@@ -100,9 +100,9 @@ export const sampleDhMatrices: SampleDhProps[] = [
                 initialOffset: 0,
                 a: 0.02,
                 d: -0.0381,
-                jointType: 0,
-                min: -180,
-                max: 180,
+                quantity: 0,
+                negativeLimit: -180,
+                positiveLimit: 180,
                 color: niceColors.flat()[2]
             },
             {
@@ -112,9 +112,9 @@ export const sampleDhMatrices: SampleDhProps[] = [
                 initialOffset: 0,
                 a: 0,
                 d: 0.267969,
-                jointType: 0,
-                min: -180,
-                max: 180,
+                quantity: 0,
+                negativeLimit: -180,
+                positiveLimit: 180,
                 color: niceColors.flat()[3]
             },
             {
@@ -124,9 +124,9 @@ export const sampleDhMatrices: SampleDhProps[] = [
                 initialOffset: 0,
                 a: 0,
                 d: 0,
-                jointType: 0,
-                min: -180,
-                max: 180,
+                quantity: 0,
+                negativeLimit: -180,
+                positiveLimit: 180,
                 color: niceColors.flat()[4]
             },
             {
@@ -136,9 +136,9 @@ export const sampleDhMatrices: SampleDhProps[] = [
                 initialOffset: 0,
                 a: 0,
                 d: 0.05842,
-                jointType: 0,
-                min: -180,
-                max: 180,
+                quantity: 0,
+                negativeLimit: -180,
+                positiveLimit: 180,
                 color: niceColors.flat()[5]
             }
         ]
@@ -155,9 +155,9 @@ export const sampleDhMatrices: SampleDhProps[] = [
                 initialOffset: 0,
                 a: 0.2,
                 d: 0.3,
-                jointType: 0,
-                min: -170,
-                max: 170,
+                quantity: 0,
+                negativeLimit: -170,
+                positiveLimit: 170,
                 color: niceColors.flat()[0]
             },
             {
@@ -167,9 +167,9 @@ export const sampleDhMatrices: SampleDhProps[] = [
                 initialOffset: 0,
                 a: 0.15,
                 d: 0.1,
-                jointType: 0,
-                min: -180,
-                max: 180,
+                quantity: 0,
+                negativeLimit: -180,
+                positiveLimit: 180,
                 color: niceColors.flat()[1]
             },
             {
@@ -179,9 +179,9 @@ export const sampleDhMatrices: SampleDhProps[] = [
                 initialOffset: 0.1,
                 a: 0,
                 d: 0,
-                jointType: 1,
-                min: -0.3,
-                max: 0,
+                quantity: 1,
+                negativeLimit: -0.3,
+                positiveLimit: 0,
                 color: niceColors.flat()[2]
             },
             {
@@ -191,9 +191,9 @@ export const sampleDhMatrices: SampleDhProps[] = [
                 initialOffset: 0,
                 a: 0,
                 d: 0,
-                jointType: 0,
-                min: -180,
-                max: 180,
+                quantity: 0,
+                negativeLimit: -180,
+                positiveLimit: 180,
                 color: niceColors.flat()[3]
             }
         ]

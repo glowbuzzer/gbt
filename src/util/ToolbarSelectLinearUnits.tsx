@@ -8,7 +8,8 @@ export const ToolbarSelectLinearUnits = () => {
     const { linearUnits, setLinearUnits } = useTileContext()
 
     function update_units(e) {
-        setLinearUnits(e.target.value)
+        console.log("e", e)
+        setLinearUnits(e)
     }
 
     //convert enum LinearUnits to array of value/label pairs

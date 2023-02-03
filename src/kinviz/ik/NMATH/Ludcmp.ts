@@ -5,9 +5,9 @@
 // An indicator of the number of row interchanges: even or odd. If the number of row interchanges is even, then the determinant is positive; if the number of row interchanges is odd, then the determinant is negative.
 // Lower Upper Decomposition
 
-export default function Ludcmp(A, update): { A: number[]; idx: number[]; d: boolean } {
+export default function Ludcmp(A, update): { A: number[]; idx: number[]; d: number } {
     // A is a matrix that we want to decompose into Lower and Upper matrices.
-    // console.log(A)
+
     var d = 0
     const n = A.length
     const idx = new Array(n) // Output vector with row permutations from partial pivoting
@@ -20,8 +20,8 @@ export default function Ludcmp(A, update): { A: number[]; idx: number[]; d: bool
             if (temp > max) max = temp
         }
         if (max == 0) {
-            console.log("Singular Matrix!")
-            return { A: null, idx: null, d: false }
+            throw new Error("Ludcmp: Singular Matrix")
+            // return { A: null, idx: null, d: false }
         } // Singular Matrix!}
 
         vv[i] = 1 / max // Scaling
@@ -64,7 +64,7 @@ export default function Ludcmp(A, update): { A: number[]; idx: number[]; d: bool
                 A[jmax][j] = A[i][j]
                 A[i][j] = temp
             }
-            d = !d
+            d = -d
             vv[jmax] = vv[i]
         }
         idx[i] = jmax

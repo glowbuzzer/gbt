@@ -18,8 +18,6 @@ export const ControlsTile = () => {
         setRobotPos,
         robotRotE,
         setRobotRotE,
-        units,
-        setUnits,
         extents,
         setExtents
     } = useKinViz()

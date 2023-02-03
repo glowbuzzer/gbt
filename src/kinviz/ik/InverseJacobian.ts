@@ -9,8 +9,8 @@ import * as NMATH from "./NMATH"
 // The Jacobian matrix is a 6x6 matrix for a 6-DOF robot.
 // The Jacobian matrix is a 6x3 matrix for a 3-DOF robot.
 
-export function computeInverseJacobian(Jfwd: NMATH.MatrixN): { Jinv: NMATH.MatrixN } {
-    const Jinv: NMATH.MatrixN = new NMATH.MatrixN(Jfwd.rows, Jfwd.cols)
+export function computeInverseJacobian(Jfwd: NMATH.MatrixN): NMATH.MatrixN {
+    const Jinv: NMATH.MatrixN = new NMATH.MatrixN(Jfwd.cols, Jfwd.rows)
 
     if (Jfwd.rows == Jfwd.cols) {
         /* square matrix */
@@ -26,61 +26,27 @@ export function computeInverseJacobian(Jfwd: NMATH.MatrixN): { Jinv: NMATH.Matri
         Jinv.multiplyMatrices(JJT, JT)
     } else {
         /* overdetermined, do least-squares best fit */
-        const JT: NMATH.MatrixN = new NMATH.MatrixN(Jfwd.cols, Jfwd.rows)
-        const JTJ: NMATH.MatrixN = new NMATH.MatrixN(Jfwd.rows, Jfwd.rows)
-        JT.copy(Jfwd).transpose()
+        // const JT: NMATH.MatrixN = new NMATH.MatrixN(Jfwd.rows, Jfwd.rows)
+        const JTJ: NMATH.MatrixN = new NMATH.MatrixN(Jfwd.cols, Jfwd.cols)
+
+        const JT: NMATH.MatrixN = new NMATH.MatrixN(Jfwd.cols, Jfwd.rows).transposeMatrix(Jfwd)
+        console.log("JT", JT) //looks ok
         JTJ.multiplyMatrices(JT, Jfwd)
         JTJ.invert()
-        Jinv.multiplyMatrices(JT, JTJ)
-    }
-    //todo added this transpose
-    // return { Jinv: Jinv.transpose() }
-    //
-    return { Jinv: Jinv }
-}
+        console.log("JTJ", JTJ) //looks ok
+        Jinv.multiplyMatrices(JTJ, JT)
 
-// function inverseJacobian(
-//     genser: IK.GenericSerial,
-//     pos: IK.Pose,
-//     vel: IK.Screw,
-//     joints: number[]
-// ): IK.MatrixN {
-//int genser_kin_jac_inv(void *kins,
-//                       const go_pose * pos,
-//                       const go_screw * vel, const go_real * joints, go_real * jointvels)
-//{
-//    genser_struct *genser = (genser_struct *) kins;
-//    GO_MATRIX_DECLARE(Jfwd, Jfwd_stg, 6, GENSER_MAX_JOINTS);
-//    GO_MATRIX_DECLARE(Jinv, Jinv_stg, GENSER_MAX_JOINTS, 6);
-//    go_pose T_L_0;
-//    go_link linkout[GENSER_MAX_JOINTS];
-//    go_real vw[6];
-//    int link;
-//    int retval;
-//
-//    go_matrix_init(Jfwd, Jfwd_stg, 6, genser->link_num);
-//    go_matrix_init(Jinv, Jinv_stg, GENSER_MAX_JOINTS, 6);
-//
-//    for (link = 0; link < genser->link_num; link++) {
-//        retval =
-//                go_link_joint_set(&genser->links[link], joints[link],
-//                                  &linkout[link]);
-//        if (GO_RESULT_OK != retval)
-//            return retval;
-//    }
-//    retval = compute_jfwd(linkout, genser->link_num, &Jfwd, &T_L_0);
-//    if (GO_RESULT_OK != retval)
-//        return retval;
-//    retval = compute_jinv(&Jfwd, &Jinv);
-//    if (GO_RESULT_OK != retval)
-//        return retval;
-//
-//    vw[0] = vel->v.x;
-//    vw[1] = vel->v.y;
-//    vw[2] = vel->v.z;
-//    vw[3] = vel->w.x;
-//    vw[4] = vel->w.y;
-//    vw[5] = vel->w.z;
-//
-//    return go_matrix_vector_mult(&Jinv, vw, jointvels);
-// }
+        // GO_MATRIX_DECLARE(JTJ, JTJstg, GENSER_MAX_JOINTS, GENSER_MAX_JOINTS);
+        //
+        // go_matrix_init(JT, JTstg, Jfwd->cols, Jfwd->rows);
+        // go_matrix_init(JTJ, JTJstg, Jfwd->cols, Jfwd->cols);
+        // go_matrix_transpose(Jfwd, &JT);
+        // go_matrix_matrix_mult(&JT, Jfwd, &JTJ);
+        // retval = go_matrix_inv(&JTJ, &JTJ);
+        // if (GO_RESULT_OK != retval)
+        //     return retval;
+        // go_matrix_matrix_mult(&JTJ, &JT, Jinv);
+    }
+
+    return Jinv
+}
