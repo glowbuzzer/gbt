@@ -48,16 +48,19 @@ export default function convertModifiedToClassicDh(links: KinematicsLink[]): Kin
 
     //Middle links
     for (let i = 0; i < numberOfLinks - 1; i++) {
+        newLinks[i] = new KinematicsLink()
+
         if (
-            links[i].type == LinkParamRepresentation.LINK_DH ||
+            // links[i].type == LinkParamRepresentation.LINK_DH ||
             links[i].type == LinkParamRepresentation.LINK_MODIFIED_DH
         ) {
-            newLinks[i] = new KinematicsLink()
             const dhNew = newLinks[i].params as DhParams
             const dhCurrent = links[i].params as DhParams
             const dhNext = links[i + 1].params as DhParams
-            newLinks[i].type = LinkParamRepresentation.LINK_MODIFIED_DH
-            newLinks[i].quantity = LinkQuantities.QUANTITY_ANGLE
+            newLinks[i].type = LinkParamRepresentation.LINK_DH
+            newLinks[i].quantity = links[i].quantity
+            newLinks[0].angularUnits = links[i].angularUnits
+            newLinks[0].linearUnits = links[i].linearUnits
             newLinks[i].body.copy(links[i].body)
             dhNew.thetaInitialOffset = dhCurrent.thetaInitialOffset
             dhNew.theta = dhCurrent.theta
@@ -87,37 +90,48 @@ export default function convertModifiedToClassicDh(links: KinematicsLink[]): Kin
                 //   'offset', r.links(i).offset, ...
                 //   'qlim', r.links(i).qlim );
             } else if (links[i].quantity == LinkQuantities.QUANTITY_NONE) {
+                // do ?
             } else {
                 throw new Error(
                     "convertClassicToModifiedDhParams: link quantity is not ANGLE or LENGTH or NONE"
                 )
             }
         } else {
-            throw new Error("convertClassicToModifiedDhParams: link type is not DH or MODIFIED_DH")
+            // throw new Error("convertClassicToModifiedDhParams: link type is not DH or MODIFIED_DH")
+            newLinks[i].copy(links[i])
         }
     }
 
+    newLinks[numberOfLinks - 1] = new KinematicsLink()
+
     if (
-        links[numberOfLinks - 1].type == LinkParamRepresentation.LINK_DH ||
+        // links[numberOfLinks - 1].type == LinkParamRepresentation.LINK_DH ||
         links[numberOfLinks - 1].type == LinkParamRepresentation.LINK_MODIFIED_DH
     ) {
-        newLinks[numberOfLinks - 1] = new KinematicsLink()
         const dhNew = newLinks[numberOfLinks - 1].params as DhParams
         const dhCurrent = links[numberOfLinks - 1].params as DhParams
-        newLinks[numberOfLinks - 1].type = LinkParamRepresentation.LINK_MODIFIED_DH
-        newLinks[numberOfLinks - 1].quantity = LinkQuantities.QUANTITY_ANGLE
+        newLinks[numberOfLinks - 1].type = LinkParamRepresentation.LINK_DH
+        newLinks[numberOfLinks - 1].quantity = links[numberOfLinks - 1].quantity
         newLinks[numberOfLinks - 1].body.copy(links[numberOfLinks - 1].body)
+        newLinks[numberOfLinks - 1].angularUnits = links[numberOfLinks - 1].angularUnits
+        newLinks[numberOfLinks - 1].linearUnits = links[numberOfLinks - 1].linearUnits
         dhNew.thetaInitialOffset = dhCurrent.thetaInitialOffset
         dhNew.theta = dhCurrent.theta
         dhNew.positiveLimit = dhCurrent.positiveLimit
         dhNew.negativeLimit = dhCurrent.negativeLimit
         if (links[numberOfLinks - 1].quantity == LinkQuantities.QUANTITY_ANGLE) {
             dhNew.a = dhCurrent.a
+            //?????
             dhNew.alpha = 0
             dhNew.d = dhCurrent.d
             //theta is variable and d is fixed
             dhNew.theta = dhCurrent.theta
         } else if (links[numberOfLinks - 1].quantity == LinkQuantities.QUANTITY_LENGTH) {
+            dhNew.alpha = 0
+            dhNew.d = dhCurrent.d
+            dhNew.a = dhCurrent.a
+
+            dhNew.theta = dhCurrent.theta
         } else if (links[numberOfLinks - 1].quantity == LinkQuantities.QUANTITY_NONE) {
             // ?
         } else {
@@ -126,7 +140,8 @@ export default function convertModifiedToClassicDh(links: KinematicsLink[]): Kin
             )
         }
     } else {
-        throw new Error("convertClassicToModifiedDhParams: link type is not DH or MODIFIED_DH")
+        // throw new Error("convertClassicToModifiedDhParams: link type is not DH or MODIFIED_DH")
+        newLinks[numberOfLinks - 1].copy(links[numberOfLinks - 1])
     }
 
     return newLinks

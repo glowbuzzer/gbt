@@ -3,91 +3,42 @@
  */
 
 import * as React from "react"
+import { useContext, useEffect, useRef, useState } from "react"
 import styled from "styled-components"
-import { PrecisionInput } from "../../../util/PrecisionInput"
-// import { useRotations } from "../RotationsProvider"
-import { Quaternion } from "three"
-import { useEffect, useState, useRef, useContext, useCallback } from "react"
 import { StyledTile } from "../styles"
-import { DockToolbar, DockToolbarButtonGroup } from "../../../util/DockToolbar"
-import { ReactComponent as CopyIcon } from "@material-symbols/svg-400/outlined/content_copy.svg"
-
+import { DockToolbar } from "../../../util/DockToolbar"
 import { ToolbarRadioAngularUnits } from "../../../util/ToolbarRadioAngularUnits"
 import { ToolbarButtonsPrecision } from "../../../util/ToolbarButtonsPrecision"
 import { ToolbarSelectLinearUnits } from "../../../util/ToolbarSelectLinearUnits"
-import { TileContextProvider, useTileContext } from "../../../util/TileContextProvider"
-import { LinearUnits } from "../../../types"
-
-import { Button, Form, InputNumber, Popconfirm, Select, Slider, Table, Tooltip } from "antd"
-import { HexColorPicker } from "react-colorful"
-
-// import "antd/dist/antd.css"
+import { ToolbarSelectDhFormat } from "../../../util/ToolbarSelectDhFormat"
+import useOnclickOutside from "react-cool-onclickoutside"
+import { useTileContext } from "../../../util/TileContextProvider"
+import { AngularUnits, DhType, LinearUnits } from "../../../types"
+import { Button, Form, InputNumber, Popconfirm, Select, Table, Tooltip, Row, Col } from "antd"
+import { SketchPicker } from "react-color"
 import type { FormInstance } from "antd/es/form"
-import niceColors from "nice-color-palettes"
-import { sampleDhMatrices } from "./SampleDhMatrices"
-import { DhMatrixTypeEnum, TableDataType } from "../types"
+import { TableDataType } from "../types"
 import * as THREE from "three"
 import { useKinViz } from "../../KinVizProvider"
-
 import * as NMATH from "../../ik/NMATH"
 import { DhParams } from "../../ik/NMATH"
 
-const StyledMenuItem = styled.div`
-    padding: 0 0 4px 0;
-
-    .title {
-        font-size: 0.9em;
-        color: rgba(0, 0, 0, 0.8);
-    }
-
-    .content {
-        font-family: monospace;
-        border: 1px solid rgba(0, 0, 0, 0.15);
-        border-radius: 4px;
-        background: rgba(0, 0, 0, 0.7);
-        padding: 4px 8px;
-        color: rgba(255, 255, 255, 0.7);
-    }
-`
-const APP_KEY = "kinviz"
-
 export const MatrixTile = () => {
+    const { dataSource, setDataSource, robotInScene, setRobotInScene, editing, setEditing } =
+        useKinViz()
+
     return (
-        <TileContextProvider appKey={APP_KEY} tileKey={"matrix"}>
+        <>
             <DockToolbar>
-                <ToolbarRadioAngularUnits />
-                <ToolbarButtonsPrecision />
-                <ToolbarSelectLinearUnits />
+                <ToolbarRadioAngularUnits disabled={editing} />
+                <ToolbarButtonsPrecision disabled={editing} />
+                <ToolbarSelectLinearUnits disabled={editing} />
+                <ToolbarSelectDhFormat disabled={editing} />
             </DockToolbar>
             <StyledTile>
                 <TableApp />
             </StyledTile>
-            {/*    <div className="grid">*/}
-            {/*        {cols.map(axis => (*/}
-            {/*            <div className="label" key={axis}>*/}
-            {/*                {axis.toUpperCase()}*/}
-            {/*            </div>*/}
-            {/*        ))}*/}
-            {/*        {cols.map((axis, index) => (*/}
-            {/*            <div className="input" key={"t-" + axis}>*/}
-            {/*                <PrecisionInput*/}
-            {/*                    value={edited[index]}*/}
-            {/*                    onChange={value => set(value, index)}*/}
-            {/*                    precision={2}*/}
-            {/*                />*/}
-            {/*            </div>*/}
-            {/*        ))}*/}
-            {/*        {cols.map((axis, index) => (*/}
-            {/*            <div className="shadow" key={"s-" + axis}>*/}
-            {/*                {shadow[index] ? shadow[index] : ""}*/}
-            {/*            </div>*/}
-            {/*        ))}*/}
-            {/*    </div>*/}
-            {/*    <Button size="small" onClick={normalize}>*/}
-            {/*        Normalize*/}
-            {/*    </Button>*/}
-            {/*</StyledTile>*/}
-        </TileContextProvider>
+        </>
     )
 }
 
@@ -100,20 +51,6 @@ interface EditableCellProps {
     handleSave: (record: Item) => void
     fieldType: number
 }
-
-//
-// export interface DataType {
-//     key: React.Key
-//     alpha: number
-//     theta: number
-//     initialOffset: number
-//     a: number
-//     d: number
-//     jointType: NMATH.LinkQuantities
-//     min: number
-//     max: number
-//     color: string
-// }
 
 type ColumnTypes = Exclude<EditableTableProps["columns"], undefined>
 
@@ -172,7 +109,6 @@ const RenderEditCell = () => {
 }
 
 const RenderDisplayCell = ({ fieldType, children, quantity }) => {
-    // console.log("fieldType", fieldType);
     switch (fieldType) {
         case 0: {
             return children
@@ -202,13 +138,16 @@ const EditableCell: React.FC<EditableCellProps> = ({
     fieldType,
     ...restProps
 }) => {
-    const [editing, setEditing] = useState(false)
+    const { dataSource, setDataSource, robotInScene, setRobotInScene, editing, setEditing } =
+        useKinViz()
+
+    const [editingCell, setEditingCell] = useState(false)
     const inputNumberRef = useRef<HTMLInputElement>(null)
     const selectRef = useRef<any>(null)
     const form = useContext(EditableContext)!
 
     useEffect(() => {
-        if (editing) {
+        if (editingCell) {
             if (inputNumberRef.current) {
                 inputNumberRef.current!.focus()
             }
@@ -216,9 +155,10 @@ const EditableCell: React.FC<EditableCellProps> = ({
                 selectRef.current!.focus()
             }
         }
-    }, [editing])
+    }, [editingCell])
 
     const toggleEdit = () => {
+        setEditingCell(!editingCell)
         setEditing(!editing)
         form.setFieldsValue({ [dataIndex]: record[dataIndex] })
     }
@@ -236,21 +176,8 @@ const EditableCell: React.FC<EditableCellProps> = ({
 
     let childNode = children
 
-    //todo make:
-    //prism - edit d not theta
-    //rev - edit thet
-    //fixed
-
-    // if (editable || ) {
     if (editable) {
-        // if (fieldType == 0) {
-        //   console.log("got an 0 (number");
-        // }
-        // if (fieldType == 1) {
-        //   console.log("got an 1 (drop down");
-        // }
-
-        childNode = editing ? (
+        childNode = editingCell ? (
             <Form.Item
                 style={{ margin: 0 }}
                 name={dataIndex}
@@ -281,6 +208,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
                             { key: 2, value: NMATH.LinkQuantities.QUANTITY_NONE, label: "fixed" }
                         ]}
                         onChange={save}
+                        onBlur={save}
                     />
                 )}
             </Form.Item>
@@ -338,28 +266,89 @@ function mapTableToKinematicsLink(row: TableDataType, index: number): NMATH.Kine
     return newLink
 }
 
-export const PopoverPicker = ({ color, onChange }) => {
-    const popover = useRef()
-    const [isOpen, toggle] = useState(false)
+export const PopoverPicker = ({ color, onChange, index }) => {
+    const popoverRef = useRef()
+    // const [listening, setListening] = useState(false)
 
-    const close = useCallback(() => toggle(false), [])
+    const {
+        dataSource,
+        setDataSource,
+        robotInScene,
+        setRobotInScene,
+        newDataLoaded,
+        setNewDataLoaded,
+        editing,
+        setEditing
+    } = useKinViz()
+
+    const [isOpen, setIsOpen] = useState(false)
+    const toggle = () => setIsOpen(!isOpen)
+
+    // const close = useCallback(() => toggle(false), [])
+
     // useClickOutside(popover, close)
+    // useEffect(listenForOutsideClicks(listening, setListening, popoverRef, setIsOpen))
+
+    const ref = useOnclickOutside(() => {
+        setIsOpen(false)
+    })
+
+    // const openBox = () => {
+    //     setopen(!open)
+    // }
+
+    // const [open, setopen] = useState(false)
+    const [pickColor, setPickColor] = useState("#ffffff") // define a state for the color prop
+    const handleChange = (color: any) => {
+        setPickColor(color.hex)
+    }
+
+    const handleChangeComplete = (color: any) => {
+        const newData = [...dataSource]
+
+        newData[index].color = color.hex
+        setDataSource(newData)
+    }
 
     return (
         <div className="picker">
             <div
                 className="swatch"
                 style={{ backgroundColor: color, width: 20, height: 20, borderRadius: 8 }}
-                onClick={() => toggle(true)}
+                onClick={toggle}
             />
 
             {isOpen && (
+                // <div
+                //     className="popover"
+                //     ref={popover}
+                //     style={{ position: `fixed`, overlay: { background: "black" } }}
+                // >
+                //     <HexColorPicker color={color} onChange={onChange} />
+                // </div>
                 <div
-                    className="popover"
-                    ref={popover}
-                    style={{ position: `fixed`, backgroundColor: "white" }}
+                    ref={ref}
+                    style={{ position: "fixed", left: "100px", top: "500px", zIndex: "2" }}
                 >
-                    <HexColorPicker color={color} onChange={onChange} />
+                    <div
+                        ref={ref}
+                        style={{
+                            position: "fixed"
+                        }}
+                        // onClick={this.handleClose}
+                        // onKeyDown={this.handleClick}
+                        // role="button"
+                        // tabIndex="0"
+                        aria-label="Save"
+                    />
+                    <SketchPicker
+                        color={pickColor}
+                        onChange={handleChange}
+                        onChangeComplete={handleChangeComplete}
+                        // color={this.state.background}
+                        // onChange={this.handleChange2}
+                        // onChangeComplete={this.handleChangeComplete}
+                    />
                 </div>
             )}
         </div>
@@ -367,13 +356,25 @@ export const PopoverPicker = ({ color, onChange }) => {
 }
 
 export const TableApp = () => {
-    const [count, setCount] = useState(sampleDhMatrices.length - 1)
-
-    const { angularUnits, precision, linearUnits } = useTileContext()
-    console.log("precision", precision)
-    console.log("angularUnits", angularUnits)
-    console.log("linearUnits", linearUnits)
-
+    const {
+        angularUnits,
+        setAngularUnits,
+        precision,
+        setLinearUnits,
+        linearUnits,
+        dhType,
+        setDhType
+    } = useTileContext()
+    const {
+        dataSource,
+        setDataSource,
+        robotInScene,
+        setRobotInScene,
+        newDataLoaded,
+        setNewDataLoaded,
+        editing,
+        setEditing
+    } = useKinViz()
     //usEffect to update units when they change
     useEffect(() => {
         if (linearUnits == "mm") handleLinearUnitsChange(NMATH.LinearUnits.UNITS_MM)
@@ -387,31 +388,56 @@ export const TableApp = () => {
         else if (angularUnits == "rad") handleAngularUnitsChange(NMATH.AngularUnits.UNITS_RAD)
     }, [angularUnits])
 
-    const {
-        dataSource,
-        setDataSource,
-        activeDhMatrixType,
-        setActiveDhMatrixType,
-        robotPos,
-        setRobotPos,
-        robotRotE,
-        setRobotRotE,
-        extents,
-        setExtents
-    } = useKinViz()
+    useEffect(() => {
+        if (dhType == "DH format classic") handleDhTypeChange(NMATH.LinkParamRepresentation.LINK_DH)
+        else if (dhType == "DH format modified")
+            handleDhTypeChange(NMATH.LinkParamRepresentation.LINK_MODIFIED_DH)
+    }, [dhType])
 
+    useEffect(() => {
+        //set dh type based on first link in dataSource
+        if (newDataLoaded == true) {
+            if (dataSource[0].type == NMATH.LinkParamRepresentation.LINK_DH) {
+                setDhType(DhType.CLASSIC)
+            } else {
+                setDhType(DhType.MODIFIED)
+            }
+
+            if (dataSource[0].linearUnits == NMATH.LinearUnits.UNITS_MM) {
+                setLinearUnits(LinearUnits.MM)
+            } else if (dataSource[0].linearUnits == NMATH.LinearUnits.UNITS_CM) {
+                setLinearUnits(LinearUnits.CM)
+            } else if (dataSource[0].linearUnits == NMATH.LinearUnits.UNITS_M) {
+                setLinearUnits(LinearUnits.M)
+            } else if (dataSource[0].linearUnits == NMATH.LinearUnits.UNITS_IN) {
+                setLinearUnits(LinearUnits.IN)
+            }
+
+            if (dataSource[0].angularUnits == NMATH.AngularUnits.UNITS_DEG) {
+                setAngularUnits(AngularUnits.DEG)
+            } else {
+                setAngularUnits(AngularUnits.RAD)
+            }
+
+            setNewDataLoaded(false)
+        }
+    }, [newDataLoaded])
+
+    //todo not sure about this
+    const [count, setCount] = useState(dataSource.length - 1)
     console.log("DS", dataSource)
 
     const dataSourceReformatted = dataSource.map((row, index) => {
         return mapKinematicsLinkToTable(row, index)
     })
-    console.log(dataSourceReformatted)
-    const handleDelete = (key: React.Key) => {
-        const newData = dataSource.filter((item, index) => index !== Number(key))
 
-        // newData.forEach((row, index) => {
-        //     row.key = index.toString()
-        // })
+    const handleDelete = (key: React.Key) => {
+        if (dataSource.length == 1) {
+            console.log("cant delete last link")
+            return
+        }
+
+        const newData = dataSource.filter((item, index) => index !== Number(key))
 
         setDataSource(newData)
     }
@@ -428,7 +454,7 @@ export const TableApp = () => {
         },
         {
             title: () => {
-                if (activeDhMatrixType == DhMatrixTypeEnum.DH_CLASSIC) {
+                if (dhType == "DH format classic") {
                     return (
                         <div>
                             <Tooltip
@@ -509,7 +535,7 @@ export const TableApp = () => {
         },
         {
             title: () => {
-                if (activeDhMatrixType == DhMatrixTypeEnum.DH_CLASSIC) {
+                if (dhType == "DH format classic") {
                     return (
                         <div>
                             <Tooltip placement="topLeft" title="Length of the common normal.">
@@ -676,7 +702,11 @@ export const TableApp = () => {
                     //         <circle cx="5" cy="5" r="5" strokeWidth={0} fill={record.color} />
                     //     </svg>
                     // </div>
-                    <PopoverPicker color={color} onChange={setColor} />
+                    <PopoverPicker
+                        color={dataSource[record.key].color}
+                        onChange={setColor}
+                        index={record.key}
+                    />
                 ) : null
         },
 
@@ -707,7 +737,7 @@ export const TableApp = () => {
         //     }
         // }
 
-        // const newData: DataType = {
+        // const newData: DataType =
         //     key: 9999,
         //     alpha: 0,
         //     theta: 0,
@@ -737,18 +767,20 @@ export const TableApp = () => {
 
     const handleSave = (row: TableDataType) => {
         //row contains table formatted data with change in it
-        console.log("row", row)
+
         const newrow: NMATH.KinematicsLink = mapTableToKinematicsLink(row, 0)
-        console.log("newrow", newrow)
+
         const newData = [...dataSource]
 
         // const index = newData.findIndex(item => row.key === item.key)
         const index = Number(row.key)
         const item = newData[index]
-        newData.splice(index, 1, {
-            ...item,
-            ...newrow
-        })
+        // newData.splice(index, 1, {
+        //     ...item,
+        //     ...newrow
+        // })
+        newData[index] = newrow
+
         setDataSource(newData)
     }
 
@@ -800,31 +832,48 @@ export const TableApp = () => {
     })
 
     const onChangeRobotPosition = (component: number, value: any) => {
-        setRobotPos(() => {
-            return robotPos.clone().setComponent(component, value)
-        })
+        const newPos = robotInScene.position.clone().setComponent(component, value)
+
+        setRobotInScene({ ...robotInScene, position: newPos })
+        // setRobotInScene(() => {
+        //
+        //     const newRobotInScene: RobotInScene = {
+        //         position: newPos,
+        //         rotation: robotInScene.rotation,
+        //         linearUnits: robotInScene.linearUnits,
+        //         angularUnits: robotInScene.angularUnits
+        //     }
+        //     return newRobotInScene
+        // })
     }
     const onChangeRobotRotation = (component: number, value: any) => {
+        setEditing(false)
         switch (component) {
             case 0: {
                 //x
-                setRobotRotE(() => {
-                    return robotRotE.clone().set(value, robotRotE.y, robotRotE.z)
-                })
+                const newRot = robotInScene.rotation
+                    .clone()
+                    .set(value, robotInScene.rotation.y, robotInScene.rotation.z)
+                setRobotInScene({ ...robotInScene, rotation: newRot })
+
                 break
             }
             case 1: {
                 //y
-                setRobotRotE(() => {
-                    return robotRotE.clone().set(robotRotE.x, value, robotRotE.z)
-                })
+                const newRot = robotInScene.rotation
+                    .clone()
+                    .set(robotInScene.rotation.x, value, robotInScene.rotation.z)
+
+                setRobotInScene({ ...robotInScene, rotation: newRot })
                 break
             }
             case 2: {
                 //z
-                setRobotRotE(() => {
-                    return robotRotE.clone().set(robotRotE.x, robotRotE.y, value)
-                })
+                const newRot = robotInScene.rotation
+                    .clone()
+                    .set(robotInScene.rotation.x, robotInScene.rotation.y, value)
+
+                setRobotInScene({ ...robotInScene, rotation: newRot })
                 break
             }
         }
@@ -839,44 +888,122 @@ export const TableApp = () => {
     //   },
     // ];
 
+    const handleDhTypeChange = e => {
+        if (
+            e == NMATH.LinkParamRepresentation.LINK_DH &&
+            dataSource[0].type == NMATH.LinkParamRepresentation.LINK_DH
+        ) {
+            //do nothing
+        }
+        if (
+            e == NMATH.LinkParamRepresentation.LINK_DH &&
+            dataSource[0].type == NMATH.LinkParamRepresentation.LINK_MODIFIED_DH
+        ) {
+            //change classic dh to modified dh
+            const newData = NMATH.convertModifiedToClassicDh(dataSource)
+            // newData.forEach((row, index) => {
+            //     row.type = NMATH.LinkParamRepresentation.LINK_MODIFIED_DH
+            // })
+            setDataSource(newData)
+            return
+        }
+
+        if (
+            e == NMATH.LinkParamRepresentation.LINK_MODIFIED_DH &&
+            dataSource[0].type == NMATH.LinkParamRepresentation.LINK_MODIFIED_DH
+        ) {
+            //do nothing
+        }
+
+        if (
+            e == NMATH.LinkParamRepresentation.LINK_MODIFIED_DH &&
+            dataSource[0].type == NMATH.LinkParamRepresentation.LINK_DH
+        ) {
+            //change  modified to classic dh
+            const newData = NMATH.convertClassicToModifiedDh(dataSource)
+            // newData.forEach((row, index) => {
+            //     row.type = NMATH.LinkParamRepresentation.LINK_DH
+            // })
+
+            setDataSource(newData)
+        }
+    }
+
     const handleAngularUnitsChange = e => {
+        //convert robotInScene to new units
+        var unitsConvert
+        if (e == NMATH.AngularUnits.UNITS_DEG) {
+            unitsConvert = "deg"
+        }
+        if (e == NMATH.AngularUnits.UNITS_RAD) {
+            unitsConvert = "rad"
+        }
+
+        if (robotInScene.angularUnits != unitsConvert) {
+            if (unitsConvert == "deg") {
+                //we are converting to degrees from radians
+
+                const newRot: THREE.Euler = new THREE.Euler(
+                    (robotInScene.rotation.x *= 180 / Math.PI),
+                    (robotInScene.rotation.y *= 180 / Math.PI),
+                    (robotInScene.rotation.z *= 180 / Math.PI)
+                )
+                setRobotInScene({
+                    ...robotInScene,
+                    rotation: newRot,
+                    angularUnits: AngularUnits.DEG
+                })
+            } else {
+                //we are converting to radians from degrees
+
+                const newRot: THREE.Euler = new THREE.Euler(
+                    (robotInScene.rotation.x *= Math.PI / 180),
+                    (robotInScene.rotation.y *= Math.PI / 180),
+                    (robotInScene.rotation.z *= Math.PI / 180)
+                )
+                setRobotInScene({
+                    ...robotInScene,
+                    rotation: newRot,
+                    angularUnits: AngularUnits.RAD
+                })
+            }
+        }
+
+        //convert kinematicsLink to new units
         const newData = [...dataSource]
-
         newData.forEach((row, index) => {
-            const item = newData[index]
-
-            const paramsAsDh = item.params as DhParams
+            const paramsAsDh = row.params as DhParams
             if (
                 e == NMATH.AngularUnits.UNITS_DEG &&
-                item.angularUnits != NMATH.AngularUnits.UNITS_DEG
+                row.angularUnits != NMATH.AngularUnits.UNITS_DEG
             ) {
                 //we are converting to degrees from radians
-                if (item.quantity == NMATH.LinkQuantities.QUANTITY_ANGLE) {
+                if (row.quantity == NMATH.LinkQuantities.QUANTITY_ANGLE) {
                     //revolute
                     paramsAsDh.alpha *= 180 / Math.PI
                     paramsAsDh.theta *= 180 / Math.PI
                     paramsAsDh.thetaInitialOffset *= 180 / Math.PI
                     paramsAsDh.positiveLimit *= 180 / Math.PI
                     paramsAsDh.negativeLimit *= 180 / Math.PI
-                    item.angularUnits = NMATH.AngularUnits.UNITS_DEG
-                } else if (item.quantity == NMATH.LinkQuantities.QUANTITY_LENGTH) {
+                    row.angularUnits = NMATH.AngularUnits.UNITS_DEG
+                } else if (row.quantity == NMATH.LinkQuantities.QUANTITY_LENGTH) {
                     //prismatic
                     //prismatic joints dont have a theta or theta offset
                     paramsAsDh.alpha *= 180 / Math.PI
-                    item.angularUnits = NMATH.AngularUnits.UNITS_DEG
+                    row.angularUnits = NMATH.AngularUnits.UNITS_DEG
                 } else {
                     //fixed
                     //fixed joints dont have initial offset or limits
                     paramsAsDh.alpha *= 180 / Math.PI
                     paramsAsDh.theta *= 180 / Math.PI
-                    item.angularUnits = NMATH.AngularUnits.UNITS_DEG
+                    row.angularUnits = NMATH.AngularUnits.UNITS_DEG
                 }
             } else if (
                 e == NMATH.AngularUnits.UNITS_RAD &&
-                item.angularUnits != NMATH.AngularUnits.UNITS_RAD
+                row.angularUnits != NMATH.AngularUnits.UNITS_RAD
             ) {
                 //we are converting to radians from degrees
-                if (item.quantity == NMATH.LinkQuantities.QUANTITY_ANGLE) {
+                if (row.quantity == NMATH.LinkQuantities.QUANTITY_ANGLE) {
                     //revolute
 
                     paramsAsDh.alpha *= Math.PI / 180
@@ -884,17 +1011,17 @@ export const TableApp = () => {
                     paramsAsDh.thetaInitialOffset *= Math.PI / 180
                     paramsAsDh.positiveLimit *= Math.PI / 180
                     paramsAsDh.negativeLimit *= Math.PI / 180
-                    item.angularUnits = NMATH.AngularUnits.UNITS_RAD
-                } else if (item.quantity == NMATH.LinkQuantities.QUANTITY_LENGTH) {
+                    row.angularUnits = NMATH.AngularUnits.UNITS_RAD
+                } else if (row.quantity == NMATH.LinkQuantities.QUANTITY_LENGTH) {
                     //prismatic
                     //prismatic joints dont have a theta or theta offset
                     paramsAsDh.alpha *= Math.PI / 180
-                    item.angularUnits = NMATH.AngularUnits.UNITS_DEG
+                    row.angularUnits = NMATH.AngularUnits.UNITS_RAD
                 } else {
                     //fixed
                     paramsAsDh.alpha *= Math.PI / 180
                     paramsAsDh.theta *= Math.PI / 180
-                    item.angularUnits = NMATH.AngularUnits.UNITS_DEG
+                    row.angularUnits = NMATH.AngularUnits.UNITS_RAD
                 }
             }
         })
@@ -904,6 +1031,41 @@ export const TableApp = () => {
 
     const handleLinearUnitsChange = e => {
         const newData = [...dataSource]
+
+        var unitsConvert
+        if (robotInScene.linearUnits == "m") {
+            unitsConvert = NMATH.LinearUnits.UNITS_M
+        } else if (robotInScene.linearUnits == "mm") {
+            unitsConvert = NMATH.LinearUnits.UNITS_MM
+        } else if (robotInScene.linearUnits == "cm") {
+            unitsConvert = NMATH.LinearUnits.UNITS_CM
+        } else if (robotInScene.linearUnits == "in") {
+            unitsConvert = NMATH.LinearUnits.UNITS_IN
+        }
+
+        var unitsConvert2
+        if (e == NMATH.LinearUnits.UNITS_M) {
+            unitsConvert2 = "m"
+        } else if (e == NMATH.LinearUnits.UNITS_MM) {
+            unitsConvert2 = "mm"
+        } else if (e == NMATH.LinearUnits.UNITS_CM) {
+            unitsConvert2 = "cm"
+        } else if (e == NMATH.LinearUnits.UNITS_IN) {
+            unitsConvert2 = "in"
+        }
+
+        const factor = NMATH.calculateLinearUnitsConversionFactor(unitsConvert, e)
+
+        const newPos: THREE.Vector3 = new THREE.Vector3(
+            (robotInScene.position.x *= factor),
+            (robotInScene.position.y *= factor),
+            (robotInScene.position.z *= factor)
+        )
+        setRobotInScene({
+            ...robotInScene,
+            position: newPos,
+            linearUnits: unitsConvert2
+        })
 
         newData.forEach((row, index) => {
             const item = newData[index]
@@ -921,11 +1083,11 @@ export const TableApp = () => {
                 //no units change
             }
 
-            newData.splice(index, 1, {
-                ...item
-            })
-            setDataSource(newData)
+            // newData.splice(index, 1, {
+            //     ...item
+            // })
         })
+        setDataSource(newData)
     }
 
     // const handleExtentsChange = e => {
@@ -951,58 +1113,130 @@ export const TableApp = () => {
                 <sub>x</sub>, R<sub>y</sub>,R<sub>z</sub>]
             </h4>
 
-            <LabelSpan>x</LabelSpan>
-            <InputNumber
-                value={robotPos.x}
-                onChange={e => onChangeRobotPosition(0, e)}
-            ></InputNumber>
-            <LabelSpan>y</LabelSpan>
-            <InputNumber
-                value={robotPos.y}
-                onChange={e => onChangeRobotPosition(1, e)}
-            ></InputNumber>
-            <LabelSpan>z</LabelSpan>
-            <InputNumber
-                value={robotPos.z}
-                onChange={e => onChangeRobotPosition(2, e)}
-            ></InputNumber>
-            <LabelSpan>
-                R<sub>x</sub>
-            </LabelSpan>
-            <InputNumber
-                value={robotRotE.x}
-                onChange={e => onChangeRobotRotation(0, e)}
-            ></InputNumber>
-            <LabelSpan>
-                R<sub>y</sub>
-            </LabelSpan>
-            <InputNumber
-                value={robotRotE.y}
-                onChange={e => onChangeRobotRotation(1, e)}
-            ></InputNumber>
-            <LabelSpan>
-                R<sub>z</sub>
-            </LabelSpan>
-            <InputNumber
-                value={robotRotE.z}
-                onChange={e => onChangeRobotRotation(2, e)}
-            ></InputNumber>
+            <Row align="middle" gutter={[16, 16]}>
+                <Col xs={2} lg={2}>
+                    x
+                </Col>
+                <Col xs={22} lg={6}>
+                    <InputNumber
+                        value={robotInScene.position.x.toFixed(precision)}
+                        onChange={e => onChangeRobotPosition(0, e)}
+                        onFocus={e => setEditing(true)}
+                        onBlur={e => setEditing(false)}
+                    ></InputNumber>
+                </Col>
+                <Col xs={2} lg={2}>
+                    y
+                </Col>
+                <Col xs={22} lg={6}>
+                    <InputNumber
+                        value={robotInScene.position.y.toFixed(precision)}
+                        onChange={e => onChangeRobotPosition(1, e)}
+                        onFocus={e => setEditing(true)}
+                        onBlur={e => setEditing(false)}
+                    ></InputNumber>
+                </Col>
+                <Col xs={2} lg={2}>
+                    z
+                </Col>
+                <Col sm={22} lg={6}>
+                    <InputNumber
+                        value={robotInScene.position.z.toFixed(precision)}
+                        onChange={e => onChangeRobotPosition(2, e)}
+                        onFocus={e => setEditing(true)}
+                        onBlur={e => setEditing(false)}
+                    ></InputNumber>
+                </Col>
+            </Row>
+            <Row align="middle" gutter={[16, 16]}>
+                <Col xs={2} lg={2}>
+                    R<sub>x</sub>
+                </Col>
+                <Col sm={22} lg={6}>
+                    <InputNumber
+                        value={robotInScene.rotation.x.toFixed(precision)}
+                        onChange={e => onChangeRobotRotation(0, e)}
+                        onFocus={e => setEditing(true)}
+                        onBlur={e => setEditing(false)}
+                    ></InputNumber>
+                </Col>
+                <Col xs={2} lg={2}>
+                    R<sub>y</sub>
+                </Col>
+                <Col sm={22} lg={6}>
+                    <InputNumber
+                        value={robotInScene.rotation.y.toFixed(precision)}
+                        onChange={e => onChangeRobotRotation(1, e)}
+                        onFocus={e => setEditing(true)}
+                        onBlur={e => setEditing(false)}
+                    ></InputNumber>
+                </Col>
+                <Col xs={2} lg={2}>
+                    R<sub>z</sub>
+                </Col>
+                <Col sm={22} lg={6}>
+                    <InputNumber
+                        value={robotInScene.rotation.z.toFixed(precision)}
+                        onChange={e => onChangeRobotRotation(2, e)}
+                        onFocus={e => setEditing(true)}
+                        onBlur={e => setEditing(false)}
+                    ></InputNumber>
+                </Col>
+            </Row>
+
+            {/*<LabelSpan>x</LabelSpan>*/}
+            {/*<InputNumber*/}
+            {/*    value={robotInScene.position.x.toFixed(precision)}*/}
+            {/*    onChange={e => onChangeRobotPosition(0, e)}*/}
+            {/*    onFocus={e => setEditing(true)}*/}
+            {/*    onBlur={e => setEditing(false)}*/}
+            {/*></InputNumber>*/}
+            {/*<LabelSpan>y</LabelSpan>*/}
+            {/*<InputNumber*/}
+            {/*    value={robotInScene.position.y.toFixed(precision)}*/}
+            {/*    onChange={e => onChangeRobotPosition(1, e)}*/}
+            {/*    onFocus={e => setEditing(true)}*/}
+            {/*    onBlur={e => setEditing(false)}*/}
+            {/*></InputNumber>*/}
+            {/*<LabelSpan>z</LabelSpan>*/}
+            {/*<InputNumber*/}
+            {/*    value={robotInScene.position.z.toFixed(precision)}*/}
+            {/*    onChange={e => onChangeRobotPosition(2, e)}*/}
+            {/*    onFocus={e => setEditing(true)}*/}
+            {/*    onBlur={e => setEditing(false)}*/}
+            {/*></InputNumber>*/}
+            {/*<LabelSpan>*/}
+            {/*    R<sub>x</sub>*/}
+            {/*</LabelSpan>*/}
+            {/*<InputNumber*/}
+            {/*    value={robotInScene.rotation.x.toFixed(precision)}*/}
+            {/*    onChange={e => onChangeRobotRotation(0, e)}*/}
+            {/*    onFocus={e => setEditing(true)}*/}
+            {/*    onBlur={e => setEditing(false)}*/}
+            {/*></InputNumber>*/}
+            {/*<LabelSpan>*/}
+            {/*    R<sub>y</sub>*/}
+            {/*</LabelSpan>*/}
+            {/*<InputNumber*/}
+            {/*    value={robotInScene.rotation.y.toFixed(precision)}*/}
+            {/*    onChange={e => onChangeRobotRotation(1, e)}*/}
+            {/*    onFocus={e => setEditing(true)}*/}
+            {/*    onBlur={e => setEditing(false)}*/}
+            {/*></InputNumber>*/}
+            {/*<LabelSpan>*/}
+            {/*    R<sub>z</sub>*/}
+            {/*</LabelSpan>*/}
+            {/*<InputNumber*/}
+            {/*    value={robotInScene.rotation.z.toFixed(precision)}*/}
+            {/*    onChange={e => onChangeRobotRotation(2, e)}*/}
+            {/*    onFocus={e => setEditing(true)}*/}
+            {/*    onBlur={e => setEditing(false)}*/}
+            {/*></InputNumber>*/}
 
             <Table
                 title={() => (
                     <>
                         <h2>Denavit–Hartenberg (DH) matrix</h2>
-
-                        <LabelSpan> Format for the DH matrix</LabelSpan>
-                        <Select
-                            options={[
-                                { value: 0, label: "Standard DH parameters" },
-                                { value: 1, label: "Modified DH parameters" }
-                            ]}
-                            value={activeDhMatrixType}
-                            onChange={setActiveDhMatrixType}
-                            style={{ width: 200 }}
-                        />
                     </>
                 )}
                 components={components}
@@ -1025,24 +1259,11 @@ export const TableApp = () => {
                                 // alignItems: "flex-start",
                                 // float: "left",
                             }}
-                        >
-                            {/*<Tooltip placement="topLeft" title="Copy DH matrix to clipboard">*/}
-                            {/*    <Button*/}
-                            {/*        type="primary"*/}
-                            {/*        shape="circle"*/}
-                            {/*        icon={<PaperClipOutlined />}*/}
-                            {/*        onClick={() => {*/}
-                            {/*            navigator.clipboard.writeText(JSON.stringify(dataSource))*/}
-                            {/*        }}*/}
-                            {/*    />*/}
-                            {/*</Tooltip>*/}
-                        </div>
+                        ></div>
                         <div
                             style={{
                                 display: "flex",
                                 justifyContent: "flex-end"
-                                // alignItems: "flex-end",
-                                // float: "right",
                             }}
                         >
                             <Button onClick={handleAdd} type="primary">

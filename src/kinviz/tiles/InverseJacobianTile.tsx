@@ -14,14 +14,14 @@ import { ToolbarButtonsPrecision } from "../../util/ToolbarButtonsPrecision"
 import { ToolbarSelectLinearUnits } from "../../util/ToolbarSelectLinearUnits"
 import { MatrixTypeset } from "./mathTypesetting/MatrixTypeset"
 import { MathJax, MathJaxContext } from "better-react-mathjax"
-import { Matrix, inverse } from "ml-matrix"
+import { computeInverseJacobian } from "../ik"
+import { inverse, Matrix } from "ml-matrix"
 import { AngularUnits, LinearUnits } from "../../types"
 
 const APP_KEY = "kinviz"
 
 function RenderMatrix({ matrix }) {
     const { precision } = useTileContext()
-
     // return (
     //     <div>
     //         [
@@ -38,10 +38,10 @@ function RenderMatrix({ matrix }) {
     //     </div>
     // )
 
-    return <MatrixTypeset mat={matrix} name={"J"} prec={precision} />
+    return <MatrixTypeset mat={matrix} name={"J^{-1}"} prec={precision} />
 }
 
-export const JacobianTile = () => {
+export const InverseJacobianTile = () => {
     const { dataSource, setDataSource, robotInScene, setRobotInScene } = useKinViz()
 
     var isError = false
@@ -51,7 +51,6 @@ export const JacobianTile = () => {
         jacobian = KIN.computeForwardJacobian(dataSource, dataSource.length)
         isError = false
     } catch (e) {
-        console.log("error", e)
         isError = true
         errorString = e
     }
@@ -59,8 +58,20 @@ export const JacobianTile = () => {
     // const Jfwd = jacobian.Jfwd
     // console.log("dataSource", dataSource)
 
-    const { angularUnits, precision, linearUnits, setAngularUnits, setLinearUnits } =
+    var jinv
+    try {
+        jinv = computeInverseJacobian(jacobian.Jfwd)
+    } catch (e) {
+        console.log("error", e)
+        isError = true
+        errorString = e
+    }
+    const { angularUnits, precision, linearUnits, setLinearUnits, setAngularUnits } =
         useTileContext()
+
+    var inverseMl = inverse(jacobian.Jfwd.el, true)
+
+    const mlMatrixN = new NMATH.MatrixN(inverseMl.rows, inverseMl.columns, inverseMl.to2DArray())
 
     useEffect(() => {
         if (dataSource[0].linearUnits == NMATH.LinearUnits.UNITS_IN) {
@@ -90,11 +101,10 @@ export const JacobianTile = () => {
             <StyledTile>
                 <MathJaxContext>
                     <div>
-                        If <MathJax inline>{"\\(\\textbf{x}\\)"}</MathJax> is the end-effector and{" "}
-                        <MathJax inline>{"\\(\\textbf{q}\\)"}</MathJax> is the joint angles, then
-                        the Jacobian is the matrix that relates the end-effector position and
-                        orientation to the joint angles. The Jacobian is just a set of partial
-                        differential equations:
+                        If <MathJax inline>{"\\(\\textbf{x}\\)"}</MathJax> is the end-effector
+                        position and <MathJax inline>{"\\(\\textbf{q}\\)"}</MathJax> is the joint
+                        angles, then the inverse of the Jacobian is the matrix that relates the
+                        joint angles to the end-effector position.
                         <div
                             style={{
                                 display: "flex",
@@ -105,41 +115,26 @@ export const JacobianTile = () => {
                         >
                             <MathJax>
                                 {
-                                    "\\(\\textbf{J} = \\frac{\\partial \\textbf{x}}{\\partial \\textbf{q}}\\)"
+                                    "\\(\\dot{\\textbf{q}} = \\textbf{J}^{-1} \\; \\dot{\\textbf{x}}\\)"
                                 }
                             </MathJax>
                         </div>
-                        It is calculated from the forward-transformation matrices which are
-                        themselves calculated from the DH parameters. For the current robot
-                        definition, the Jacobian, at the current set of joint angles is:
+                        It is calculated by inverting the Jacobina. If the Jacobian is a square
+                        matrix this is straight forward. For non square matrices, the pseudo-inverse
+                        is used. As we approach singularities the inverse Jacobian values tend to
+                        infinity. For the current robot definition, the inverse Jacobian, at the
+                        current set of joint angles is:
                         {isError ? (
                             <div style={{ paddingTop: 5, paddingBottom: 5, color: "red" }}>
                                 Error: can't calculate Jacobian{" "}
                             </div>
                         ) : (
-                            <RenderMatrix matrix={jacobian.Jfwd} />
+                            <RenderMatrix matrix={jinv} />
                         )}
+                        <RenderMatrix matrix={mlMatrixN} />
                         {/*<MatrixTypeset mat={testMatrix} name={"test"} />*/}
                     </div>
-                    <div>
-                        Remember the basics:
-                        <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "center",
-                                paddingTop: 5,
-                                paddingBottom: 5
-                            }}
-                        >
-                            <MathJax>
-                                {"\\(\\dot{\\textbf{x}} = \\textbf{J} \\; \\dot{\\textbf{q}}\\)"}
-                            </MathJax>
-                        </div>
-                        This tells us that the end-effector velocity (in cartesian space) is equal
-                        to the Jacobian,
-                        <MathJax inline>{"\\(\\textbf{J}\\)"}</MathJax>, multiplied by the joint
-                        angle velocities.
-                    </div>
+                    <div></div>
                 </MathJaxContext>
             </StyledTile>
         </>

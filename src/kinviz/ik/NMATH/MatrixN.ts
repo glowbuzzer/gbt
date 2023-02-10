@@ -74,7 +74,7 @@ export default class MatrixN {
 
     multiply(m: MatrixN) {
         //if number of columns of the first matrix is not equal to the number of rows of the second matrix, error
-        // console.log(this.cols, m.rows)
+
         if (this.cols != m.rows) {
             throw new Error("MatrixN.multiply() - this.cols != m.rows")
         }
@@ -118,7 +118,7 @@ export default class MatrixN {
         const thisClone = this.clone()
 
         const te = this.el
-        // console.log("thisClone", thisClone)
+
         for (let i = 0; i < this.rows; i++) {
             for (let j = 0; j < this.cols; j++) {
                 te[j][i] = thisClone.el[i][j]

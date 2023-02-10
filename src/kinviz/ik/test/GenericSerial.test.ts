@@ -9,14 +9,14 @@ import * as NMATH from "../NMATH/index"
 const testLink1: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
     NMATH.LinkParamRepresentation.LINK_DH,
     NMATH.LinkQuantities.QUANTITY_ANGLE,
-    new NMATH.DhParams(0, 0, 0, 0, 0, 0, true),
+    new NMATH.DhParams(0, 0, 0, 0, 0, 0, 0, 0),
     new NMATH.Body(),
     0
 )
 const testLink2: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
     NMATH.LinkParamRepresentation.LINK_DH,
     NMATH.LinkQuantities.QUANTITY_ANGLE,
-    new NMATH.DhParams(1, -Math.PI / 2, 2, 3, 4, -Math.PI / 2, true),
+    new NMATH.DhParams(1, -Math.PI / 2, 2, 3, 4, -Math.PI / 2, 5, 6),
     new NMATH.Body(),
     0
 )

@@ -30,10 +30,10 @@ export function computeInverseJacobian(Jfwd: NMATH.MatrixN): NMATH.MatrixN {
         const JTJ: NMATH.MatrixN = new NMATH.MatrixN(Jfwd.cols, Jfwd.cols)
 
         const JT: NMATH.MatrixN = new NMATH.MatrixN(Jfwd.cols, Jfwd.rows).transposeMatrix(Jfwd)
-        console.log("JT", JT) //looks ok
+
         JTJ.multiplyMatrices(JT, Jfwd)
         JTJ.invert()
-        console.log("JTJ", JTJ) //looks ok
+
         Jinv.multiplyMatrices(JTJ, JT)
 
         // GO_MATRIX_DECLARE(JTJ, JTJstg, GENSER_MAX_JOINTS, GENSER_MAX_JOINTS);

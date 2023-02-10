@@ -9,16 +9,16 @@ import { MatrixTile } from "./tiles/matrix/MatrixTile"
 
 import { LoadSaveTile } from "./tiles/LoadSaveTile"
 import { JacobianTile } from "./tiles/JacobianTile"
+import { InverseJacobianTile } from "./tiles/InverseJacobianTile"
+import { InverseKinematicsTile } from "./tiles/InverseKinematicsTile"
+import { ForwardKinematicsTile } from "./tiles/ForwardKinematicsTile"
 import { GlobalBanner } from "../GlobalBanner"
 import { TileContextProvider } from "../util/TileContextProvider"
 import { ControlsTile } from "./tiles/ControlsTile"
 
 import { ThreeDimensionalViewTile } from "./tiles/ThreeDimensionalViewTile"
 
-import * as IK from "./ik/IkMath"
-
 import { Helmet } from "react-helmet"
-import { computeForwardJacobian } from "./ik/ForwardJacobian"
 
 export const KinVizTool = () => {
     const model: IJsonModel = {
@@ -35,7 +35,7 @@ export const KinVizTool = () => {
             children: [
                 {
                     type: "row",
-                    weight: 50,
+                    weight: 30,
                     children: [
                         {
                             type: "tabset",
@@ -46,6 +46,18 @@ export const KinVizTool = () => {
                                     type: "tab",
                                     id: "loadSave",
                                     name: "Load and save"
+                                }
+                            ]
+                        },
+                        {
+                            type: "tabset",
+                            id: "left2",
+                            enableDeleteWhenEmpty: false,
+                            children: [
+                                {
+                                    type: "tab",
+                                    id: "controls",
+                                    name: "Controls"
                                 }
                             ]
                         }
@@ -79,19 +91,42 @@ export const KinVizTool = () => {
                     ]
                 },
                 {
-                    type: "tabset",
-                    id: "right1",
-                    weight: 30,
+                    type: "row",
+                    weight: 50,
                     children: [
                         {
-                            type: "tab",
-                            id: "controls",
-                            name: "Controls"
+                            type: "tabset",
+                            id: "right1",
+
+                            children: [
+                                {
+                                    type: "tab",
+                                    id: "forwardKinematics",
+                                    name: "Forward Kinematics"
+                                },
+                                {
+                                    type: "tab",
+                                    id: "inverseKinematics",
+                                    name: "Inverse Kinematics"
+                                }
+                            ]
                         },
                         {
-                            type: "tab",
-                            id: "jacobian",
-                            name: "Jacobian"
+                            type: "tabset",
+                            id: "right2",
+
+                            children: [
+                                {
+                                    type: "tab",
+                                    id: "jacobian",
+                                    name: "Jacobian"
+                                },
+                                {
+                                    type: "tab",
+                                    id: "inverseJacobian",
+                                    name: "Inverse Jacobian"
+                                }
+                            ]
                         }
                     ]
                 }
@@ -116,13 +151,13 @@ export const KinVizTool = () => {
             case "threeDimensionalView":
                 return (
                     <TileContextProvider appKey={"kinviz"} tileKey={"threeDimensionalView"}>
-                        {/*<ThreeDimensionalViewTile />*/}
+                        <ThreeDimensionalViewTile />
                     </TileContextProvider>
                 )
             case "controls":
                 return (
                     <TileContextProvider appKey={"kinviz"} tileKey={"controls"}>
-                        {/*<ControlsTile />*/}
+                        <ControlsTile />
                     </TileContextProvider>
                 )
             case "jacobian":
@@ -131,8 +166,26 @@ export const KinVizTool = () => {
                         <JacobianTile />
                     </TileContextProvider>
                 )
+            case "inverseJacobian":
+                return (
+                    <TileContextProvider appKey={"kinviz"} tileKey={"inverseJacobian"}>
+                        <InverseJacobianTile />
+                    </TileContextProvider>
+                )
+            case "inverseKinematics":
+                return (
+                    <TileContextProvider appKey={"kinviz"} tileKey={"inverseKinematics"}>
+                        <InverseKinematicsTile />
+                    </TileContextProvider>
+                )
+            case "forwardKinematics":
+                return (
+                    <TileContextProvider appKey={"kinviz"} tileKey={"forwardKinematics"}>
+                        <ForwardKinematicsTile />
+                    </TileContextProvider>
+                )
         }
-        return <div>hello</div>
+        return <div>Error: no tile produced by the factory</div>
     }
 
     return (

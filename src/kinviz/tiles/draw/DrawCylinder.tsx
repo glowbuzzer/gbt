@@ -27,7 +27,6 @@ export const DrawCylinder = ({
     const position = vEnd.clone().add(vStart).divideScalar(2)
 
     if (distance <= radius * 2) {
-        console.log("very short")
         distance += radius * 2
     }
 

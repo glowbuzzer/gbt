@@ -3,3 +3,6 @@
  */
 
 export { computeForwardJacobian } from "./ForwardJacobian"
+export { computeInverseJacobian } from "./InverseJacobian"
+export { inverseKinematics } from "./InverseKinematics"
+export { forwardKinematics } from "./ForwardKinematics"

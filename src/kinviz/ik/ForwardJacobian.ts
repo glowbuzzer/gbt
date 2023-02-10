@@ -17,14 +17,22 @@ export function computeForwardJacobian(
 ): { Jfwd: NMATH.MatrixN; T_L_0: THREE.Matrix4 } {
     const pose: THREE.Matrix4 = new THREE.Matrix4()
 
-    if (link_number < 2) {
-        throw new Error("ComputeForwardJacobian: link number must be at least 2")
+    //missing angularunits conversion
+    //missing joint offset conversion
+
+    if (link_number < 1) {
+        throw new Error("ComputeForwardJacobian: link number must be at least 1")
     }
 
+    //topose converts degrees to radians and adjust the joint offset
     if (NMATH.LinkParamRepresentation.LINK_DH == link_params[0].type) {
-        pose.copy((link_params[0].params as NMATH.DhParams).toPose(false))
+        pose.copy(
+            (link_params[0].params as NMATH.DhParams).toPose(false, link_params[0].angularUnits)
+        )
     } else if (NMATH.LinkParamRepresentation.LINK_MODIFIED_DH == link_params[0].type) {
-        pose.copy((link_params[0].params as NMATH.DhParams).toPose(true))
+        pose.copy(
+            (link_params[0].params as NMATH.DhParams).toPose(true, link_params[0].angularUnits)
+        )
     } else if (NMATH.LinkParamRepresentation.LINK_PP == link_params[0].type) {
         pose.copy((link_params[0].params as NMATH.PpParams).pose)
     } else if (NMATH.LinkParamRepresentation.LINK_URDF == link_params[0].type) {
@@ -100,9 +108,19 @@ export function computeForwardJacobian(
     for (let col = 1; col < link_number; col++) {
         /* T_ip1_i */
         if (NMATH.LinkParamRepresentation.LINK_DH == link_params[col].type) {
-            pose.copy((link_params[col].params as NMATH.DhParams).toPose(false))
+            pose.copy(
+                (link_params[col].params as NMATH.DhParams).toPose(
+                    false,
+                    link_params[col].angularUnits
+                )
+            )
         } else if (NMATH.LinkParamRepresentation.LINK_MODIFIED_DH == link_params[col].type) {
-            pose.copy((link_params[col].params as NMATH.DhParams).toPose(true))
+            pose.copy(
+                (link_params[col].params as NMATH.DhParams).toPose(
+                    true,
+                    link_params[col].angularUnits
+                )
+            )
         } else if (NMATH.LinkParamRepresentation.LINK_PP == link_params[col].type) {
             pose.copy((link_params[col].params as NMATH.PpParams).pose)
         } else {

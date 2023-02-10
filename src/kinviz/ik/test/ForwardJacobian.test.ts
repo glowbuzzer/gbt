@@ -7,11 +7,9 @@ import { describe, it, assert, expect, test } from "vitest"
 import * as THREE from "three"
 import * as NMATH from "../NMATH"
 import { computeForwardJacobian } from "../ForwardJacobian"
-import {
-    staubliTx40Modified,
-    staubliTx40Classic,
-    adeptCobra600Classic
-} from "../GenericSerialConfigs"
+import { staubliTx40Modified } from "../ExampleMachines/StaubliTx40Modified"
+import { staubliTx40Classic } from "../ExampleMachines/StaubliTx40Classic"
+import { adeptCobra600Classic } from "../ExampleMachines/AdeptCobra600Classic"
 import { computeForwardJacobianAlternative } from "../ForwardJacobianAlternative"
 
 describe("ForwardJacobian", () => {
@@ -41,7 +39,7 @@ describe("ForwardJacobian", () => {
         }
 
         for (let link = 0; link < genser.link_num; link++) {
-            linkout[link] = genser.links[link].jointSet(joints[link])
+            linkout[link] = genser.links[link].jointSet(joints[link], true)
             // weights[link] =
             //     IK.LinkQuantities.GO_QUANTITY_LENGTH == genser.links[link].quantity
             //         ? genser.links[link].body.mass
@@ -63,21 +61,24 @@ describe("ForwardJacobian", () => {
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, -Math.PI / 2, 3, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const threeRlink2: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, -Math.PI / 2, 0, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const threeRlink3: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, 0, 0, 5, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
 
         const links = [threeRlink1, threeRlink2, threeRlink3]
@@ -101,14 +102,16 @@ describe("ForwardJacobian", () => {
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(l1, 0, 0, 0, theta1, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const twoRlink2: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(l2, 0, 0, 0, theta2, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
 
         const links = [twoRlink1, twoRlink2]
@@ -160,42 +163,48 @@ describe("ForwardJacobian", () => {
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(70, -Math.PI / 2, 352, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const sixRlink2: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(360, 0, 0, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const sixRlink3: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, Math.PI / 2, 0, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const sixRlink4: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, -Math.PI / 2, 380, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const sixRlink5: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, Math.PI / 2, 0, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const sixRlink6: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, Math.PI / 2, 65, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
 
         const joints = [Math.PI / 2, 0, -Math.PI / 2, 0, 0, 0]
@@ -260,42 +269,48 @@ describe("ForwardJacobian", () => {
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(70, -Math.PI / 2, 352, 0, Math.PI / 2, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const sixRlink2: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(360, 0, 0, 0, Math.PI / 2, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const sixRlink3: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, Math.PI / 2, 0, 0, Math.PI / 2, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const sixRlink4: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, -Math.PI / 2, 380, 0, Math.PI / 2, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const sixRlink5: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, Math.PI / 2, 0, 0, Math.PI / 2, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const sixRlink6: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, Math.PI / 2, 65, 0, Math.PI / 2, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
 
         const joints = [Math.PI / 2, 0, -Math.PI / 2, 0, 0, 0]
@@ -355,35 +370,40 @@ describe("ForwardJacobian", () => {
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, 0, 352, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const sixRlink2: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_MODIFIED_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(70, Math.PI / 2, 0, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const sixRlink3: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_MODIFIED_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(360, 0, 0, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const sixRlink4: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_MODIFIED_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, Math.PI / 2, 380, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const sixRlink5: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_MODIFIED_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, -Math.PI / 2, 0, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         //65 missing for d?
         const sixRlink6: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
@@ -391,7 +411,8 @@ describe("ForwardJacobian", () => {
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, Math.PI / 2, 0, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
 
         const joints = [Math.PI / 2, 0, -Math.PI / 2, 0, 0, 0]
@@ -446,35 +467,40 @@ describe("ForwardJacobian", () => {
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, 0, 352, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const sixRlink2: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_MODIFIED_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(70, Math.PI / 2, 0, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const sixRlink3: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_MODIFIED_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(360, 0, 0, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const sixRlink4: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_MODIFIED_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, Math.PI / 2, 380, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         const sixRlink5: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
             NMATH.LinkParamRepresentation.LINK_MODIFIED_DH,
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, -Math.PI / 2, 0, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
         //65 missing for d?
         const sixRlink6: NMATH.KinematicsLink = new NMATH.KinematicsLink().set(
@@ -482,7 +508,8 @@ describe("ForwardJacobian", () => {
             NMATH.LinkQuantities.QUANTITY_ANGLE,
             new NMATH.DhParams(0, Math.PI / 2, 0, 0, 0, 0),
             new NMATH.Body(),
-            0
+            NMATH.LinearUnits.UNITS_MM,
+            NMATH.AngularUnits.UNITS_RAD
         )
 
         const joints = [Math.PI / 2, 0, -Math.PI / 2, 0, 0, 0]

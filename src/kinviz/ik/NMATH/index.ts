@@ -21,7 +21,7 @@ export { default as convertClassicToModifiedDh } from "./ConvertClassicToModifie
 export { default as convertModifiedToClassicDh } from "./ConvertModifiedToClassicDh"
 export { default as PoseBuild } from "./PoseBuild"
 export { default as checkForMixedLinkTypes } from "./CheckForMixedLinkTypes"
-export { staubliTx40Classic } from "../GenericSerialConfigs"
+export { default as calculateLinearUnitsConversionFactor } from "./CalculateLinearUnitsConversionFactor"
 export {
     convertLinearUnitsPrismatic,
     convertLinearUnitsRevolute,

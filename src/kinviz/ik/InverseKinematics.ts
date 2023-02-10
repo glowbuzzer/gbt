@@ -10,6 +10,7 @@ import { computeInverseJacobian } from "./InverseJacobian"
 import { forwardKinematics } from "./ForwardKinematics"
 import { computeForwardJacobianAlternative } from "./ForwardJacobianAlternative"
 import { jointsRemoveInitialOffset, jointsSetInitialOffset } from "./NMATH"
+import { inverse } from "ml-matrix"
 
 /*
   Set ROTATE_JACOBIANS_BACK if you want the Jacobian matrix to be
@@ -33,48 +34,27 @@ export function inverseKinematics(
 
     const weights: number[] = []
 
-    // console.log("joints", joints[0], joints[1], joints[2], joints[3], joints[4], joints[5])
-
     const worldV3 = new THREE.Vector3()
     const worldQ = new THREE.Quaternion()
     world.decompose(worldV3, worldQ, new THREE.Vector3())
 
+    var jest: number[] = []
     /* jest[] is a copy of joints[], which is the joint estimate */
-    // for (let link = 0; link < genser.link_num; link++) {
-    //     // jest, and the rest of joint related calcs are in radians
-    //     jest[link] = joints[link]
-    // }
+    for (let link = 0; link < genser.link_num; link++) {
+        // jest, and the rest of joint related calcs are in radians
+        jest[link] = joints[link]
+    }
 
-    const jest = jointsSetInitialOffset(joints, genser)
+    // const jest = jointsSetInitialOffset(joints, genser)
 
-    // console.log(genser)
     for (genser.iterations = 0; genser.iterations < genser.max_iterations; genser.iterations++) {
         const dvw: number[][] = []
         const linkout: NMATH.KinematicsLink[] = []
 
         /* update the Jacobians */
-        console.log(
-            "jest",
-            (jest[0] * 180) / Math.PI,
-            (jest[1] * 180) / Math.PI,
-            (jest[2] * 180) / Math.PI,
-            (jest[3] * 180) / Math.PI,
-            (jest[4] * 180) / Math.PI,
-            (jest[5] * 180) / Math.PI
-        )
-        console.log(
-            "world",
-            worldV3.x,
-            worldV3.y,
-            worldV3.z,
-            worldQ.x,
-            worldQ.y,
-            worldQ.z,
-            worldQ.w
-        )
 
         for (let link = 0; link < genser.link_num; link++) {
-            linkout[link] = genser.links[link].jointSet(jest[link])
+            linkout[link] = genser.links[link].jointSet(jest[link], false)
             // weights[link] =
             //     IK.LinkQuantities.GO_QUANTITY_LENGTH == genser.links[link].quantity
             //         ? genser.links[link].body.mass
@@ -83,51 +63,44 @@ export function inverseKinematics(
             //         : 1
         }
 
-        // console.log("linkout", linkout)
-
         const { Jfwd: Jfwd, T_L_0: T_L_0 } = computeForwardJacobian(linkout, genser.link_num)
 
-        // console.log("Jfwd", Jfwd)
-        // console.log("T_L_0", T_L_0)
-        const Jinv = new NMATH.MatrixN(6, genser.link_num)
+        const Jinv = new NMATH.MatrixN(genser.link_num, 6)
 
-        try {
-            Jinv.copy(computeInverseJacobian(Jfwd))
-        } catch (e) {
-            console.error(
-                "computeInverseJacobian: error encountered calculating inverse Jacobian: ",
-                e
-            )
-            throw e
-        }
+        // try {
+        //     Jinv.copy(computeInverseJacobian(Jfwd))
+        // } catch (e) {
+        //     console.error(
+        //         "computeInverseJacobian: error encountered calculating inverse Jacobian: ",
+        //         e
+        //     )
+        //     throw e
+        // }
+
+        var inverseMl = inverse(Jfwd.el, true)
+
+        const mlMatrixN = new NMATH.MatrixN(
+            inverseMl.rows,
+            inverseMl.columns,
+            inverseMl.to2DArray()
+        )
+
+        Jinv.copy(mlMatrixN)
+
         /* pest is the resulting pose estimate given joint estimate */
         // const { pose: pest } = forwardKinematics(genser, jest)
 
         // todo to need to call forwardKinematics??
         const pest = new THREE.Matrix4().copy(T_L_0)
-        // console.log("T_L_0", T_L_0)
-        // console.log("pest", pest)
 
         const pestV3 = new THREE.Vector3()
         const pestQ = new THREE.Quaternion()
         pest.decompose(pestV3, pestQ, new THREE.Vector3())
 
-        console.log("pest", pestV3.x, pestV3.y, pestV3.z, pestQ.x, pestQ.y, pestQ.z, pestQ.w)
-
         /* pestinv is its inverse */
         const pestinv = new THREE.Matrix4()
         // pestinv.inversePose(pest)
         pestinv.copy(pest.clone().invert())
-        // console.log(
-        //     "pestinv",
-        //     pestinv.tran.x,
-        //     pestinv.tran.y,
-        //     pestinv.tran.z,
-        //     pestinv.rot.x,
-        //     pestinv.rot.y,
-        //     pestinv.rot.z,
-        //     pestinv.rot.w
-        // )
 
         // go_pose_inv(&pest, &pestinv);
         /*
@@ -149,32 +122,32 @@ export function inverseKinematics(
         const checkV3 = new THREE.Vector3()
         const checkQ = new THREE.Quaternion()
         check.decompose(checkV3, checkQ, new THREE.Vector3())
-        console.log(
-            "check",
-            checkV3.x,
-            checkV3.y,
-            checkV3.z,
-            checkQ.x,
-            checkQ.y,
-            checkQ.z,
-            checkQ.w
-        )
+        // console.log(
+        //     "check",
+        //     checkV3.x,
+        //     checkV3.y,
+        //     checkV3.z,
+        //     checkQ.x,
+        //     checkQ.y,
+        //     checkQ.z,
+        //     checkQ.w
+        // )
 
         // go_pose_pose_mult(&pestinv, pos, &Tdelta);
 
         const TdeltaV3 = new THREE.Vector3()
         const TdeltaQ = new THREE.Quaternion()
         Tdelta.decompose(TdeltaV3, TdeltaQ, new THREE.Vector3())
-        console.log(
-            "Tdelta",
-            TdeltaV3.x,
-            TdeltaV3.y,
-            TdeltaV3.z,
-            TdeltaQ.x,
-            TdeltaQ.y,
-            TdeltaQ.z,
-            TdeltaQ.w
-        )
+        // console.log(
+        //     "Tdelta",
+        //     TdeltaV3.x,
+        //     TdeltaV3.y,
+        //     TdeltaV3.z,
+        //     TdeltaQ.x,
+        //     TdeltaQ.y,
+        //     TdeltaQ.z,
+        //     TdeltaQ.w
+        // )
         const tCart = new THREE.Vector3()
         Tdelta.decompose(tCart, new THREE.Quaternion(), new THREE.Vector3())
         const pestM3 = new THREE.Matrix3().setFromMatrix4(pest)
@@ -234,20 +207,20 @@ export function inverseKinematics(
 
         if (NMATH.ROT_SMALL(sh)) {
             rvec.set(0, 0, 0)
-            console.log("rot small")
+            // console.log("rot small")
         } else {
             mag = (2 * Math.atan2(sh, qFromRot.w)) / sh
-            console.log("mag", mag)
+            // console.log("mag", mag)
             rvec.set(mag * qFromRot.x, mag * qFromRot.y, mag * qFromRot.z)
         }
         rCart.set(rvec.x, rvec.y, rvec.z)
 
-        console.log("rCart before rot back", rCart.x, rCart.y, rCart.z)
+        // console.log("rCart before rot back", rCart.x, rCart.y, rCart.z)
         if (ROTATE_JACOBIANS_BACK) {
             // rCart.applyMatrix3(pestM3)
             // go_quat_cart_mult(&pest.rot, &cart, &cart);
         }
-        console.log("rCart after rot back", rCart.x, rCart.y, rCart.z)
+        // console.log("rCart after rot back", rCart.x, rCart.y, rCart.z)
 
         dvw[3] = []
         dvw[4] = []
@@ -256,8 +229,8 @@ export function inverseKinematics(
         dvw[4][0] = rCart.y
         dvw[5][0] = rCart.z
 
-        console.log("rcart", rCart.x, rCart.y, rCart.z)
-        console.log("dvw", dvw)
+        // console.log("rcart", rCart.x, rCart.y, rCart.z)
+        // console.log("dvw", dvw)
         /* push the Cartesian velocity vector through the inverse Jacobian */
         // go_matrix_vector_mult(&Jinv, dvw, dj);
 
@@ -351,18 +324,18 @@ export function inverseKinematics(
                 "jest",
                 jest.map(j => (j * 180) / Math.PI)
             )
-            const adjustedKoints = jointsRemoveInitialOffset(jest, genser)
-            adjustedKoints.forEach((j, index) => {
-                joints[index] = j
-            })
-            console.log(
-                "joints",
-                joints.map(j => (j * 180) / Math.PI)
-            )
-            // for (let link = 0; link < genser.link_num; link++) {
-            //     joints[link] = jest[link]
-            //     console.log("jest", (jest[link] * 180) / Math.PI)
-            // }
+            // const adjustedKoints = jointsRemoveInitialOffset(jest, genser)
+            // adjustedKoints.forEach((j, index) => {
+            //     joints[index] = j
+            // })
+            // console.log(
+            //     "joints",
+            //     joints.map(j => (j * 180) / Math.PI)
+            // )
+            for (let link = 0; link < genser.link_num; link++) {
+                joints[link] = jest[link]
+                console.log("jest", (jest[link] * 180) / Math.PI)
+            }
             console.log("Converged [iterations]", genser.iterations)
             return
         }
@@ -373,10 +346,14 @@ export function inverseKinematics(
             // jest[link] += dj[link][0]
             jest[link] += dj[link]
 
-            // if (NMATH.LinkQuantities.QUANTITY_ANGLE == linkout[link].quantity) {
-            //     if (jest[link] > Math.PI) jest[link] -= Math.PI * 2
-            //     else if (jest[link] < -Math.PI) jest[link] += Math.PI * 2
-            // }
+            if (NMATH.LinkQuantities.QUANTITY_ANGLE == linkout[link].quantity) {
+                if (jest[link] > Math.PI) {
+                    console.log("adjusting jest")
+                    jest[link] -= Math.PI * 2
+                } else if (jest[link] < -Math.PI) {
+                    jest[link] += Math.PI * 2
+                }
+            }
         }
     } /* for (iterations) */
 

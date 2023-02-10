@@ -25,7 +25,7 @@ export const MatrixTypeset = ({
     prec: number
 }) => {
     const _elem = (i, j) => mat.el.flat()[j + i * mat.cols].toFixed(prec)
-    console.log("prec", prec)
+
     const _name = name
     const _texElems = "\\[".concat(
         (_name ? `${_name}=` : "matrix =").concat(

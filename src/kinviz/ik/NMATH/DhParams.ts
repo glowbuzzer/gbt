@@ -6,6 +6,8 @@ import * as THREE from "three"
 import KinematicsLink from "./KinematicsLink"
 import { LinkParamRepresentation } from "./LinkParamRepresentation"
 import { LinkQuantities } from "./LinkQuantities"
+import { AngularUnits } from "./AngularUnits"
+import { LinearUnits } from "./LinearUnits"
 
 // standard DH parameters, this is from the previous frame to the current.
 // modified DH parameters, this is from the current frame to the next
@@ -59,14 +61,28 @@ export default class DhParams {
         this.negativeLimit = negativeLimit
     }
 
-    toPose(modified: boolean) {
+    toPose(modified: boolean, angularUnits: AngularUnits) {
         const pose = new THREE.Matrix4()
+        var adjustedTheta: number = 0
+        var adjustedAlpha: number = 0
+        var adjustedD: number = 0
+        var adjustedA: number = 0
+        //if prismatic then theta offset should be zero
+        if (angularUnits == AngularUnits.UNITS_DEG) {
+            adjustedTheta = this.theta * (Math.PI / 180) + this.thetaInitialOffset * (Math.PI / 180)
+            adjustedAlpha = this.alpha * (Math.PI / 180)
+        } else {
+            adjustedTheta = this.theta + this.thetaInitialOffset
+            adjustedAlpha = this.alpha
+        }
+        //todo if not revolute, then this should be zero
+        adjustedD = this.d + this.dInitialOffset
 
-        const sth = Math.sin(this.theta)
-        const cth = Math.cos(this.theta)
+        const sth = Math.sin(adjustedTheta)
+        const cth = Math.cos(adjustedTheta)
 
-        const sal = Math.sin(this.alpha)
-        const cal = Math.cos(this.alpha)
+        const sal = Math.sin(adjustedAlpha)
+        const cal = Math.cos(adjustedAlpha)
 
         //FOR CLASSIC
         if (!modified) {
@@ -82,7 +98,7 @@ export default class DhParams {
                 0,
                 sal,
                 cal,
-                this.d,
+                adjustedD,
                 0,
                 0,
                 0,
@@ -98,11 +114,11 @@ export default class DhParams {
                 sth * cal,
                 cth * cal,
                 -sal,
-                -sal * this.d,
+                -sal * adjustedD,
                 sth * sal,
                 cth * sal,
                 cal,
-                cal * this.d,
+                cal * adjustedD,
 
                 0,
                 0,

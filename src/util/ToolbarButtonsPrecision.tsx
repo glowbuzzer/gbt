@@ -4,8 +4,8 @@ import { GlowbuzzerIcon } from "./GlowbuzzerIcon"
 import { ReactComponent as DecimalIncrease } from "@material-symbols/svg-400/outlined/decimal_increase.svg"
 import { ReactComponent as DecimalDecrease } from "@material-symbols/svg-400/outlined/decimal_decrease.svg"
 import { useTileContext } from "./TileContextProvider"
-
-export const ToolbarButtonsPrecision = () => {
+// = ({ disabled = false })
+export const ToolbarButtonsPrecision = ({ disabled = false }) => {
     const { precision, setPrecision } = useTileContext()
 
     function decrease() {
@@ -22,12 +22,14 @@ export const ToolbarButtonsPrecision = () => {
                 Icon={DecimalDecrease}
                 title="Decrease Decimal Places"
                 button
+                disabled={disabled}
                 onClick={decrease}
             />
             <GlowbuzzerIcon
                 Icon={DecimalIncrease}
                 title="Increase Decimal Places"
                 button
+                disabled={disabled}
                 onClick={increase}
             />
         </DockToolbarButtonGroup>

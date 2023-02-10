@@ -10,7 +10,6 @@ describe("Body", () => {
     test("Body constructor no params", () => {
         const body = new NMATH.Body()
         expect(body).toBeInstanceOf(NMATH.Body)
-        console.log(body)
     })
 
     test("Body constructor with params", () => {
@@ -28,6 +27,5 @@ describe("Body", () => {
             [7, 8, 9],
             [10, 11, 12]
         ])
-        console.log(body)
     })
 })

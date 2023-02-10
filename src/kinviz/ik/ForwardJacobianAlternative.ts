@@ -23,9 +23,13 @@ export function computeForwardJacobianAlternative(
     Jw.el[2][0] = NMATH.LinkQuantities.QUANTITY_ANGLE == link_params[0].quantity ? 1 : 0
 
     if (NMATH.LinkParamRepresentation.LINK_DH == link_params[0].type) {
-        pose.copy((link_params[0].params as NMATH.DhParams).toPose(false))
+        pose.copy(
+            (link_params[0].params as NMATH.DhParams).toPose(false, link_params[0].angularUnits)
+        )
     } else if (NMATH.LinkParamRepresentation.LINK_MODIFIED_DH == link_params[0].type) {
-        pose.copy((link_params[0].params as NMATH.DhParams).toPose(true))
+        pose.copy(
+            (link_params[0].params as NMATH.DhParams).toPose(true, link_params[0].angularUnits)
+        )
     } else if (NMATH.LinkParamRepresentation.LINK_PP == link_params[0].type) {
         pose.copy((link_params[0].params as NMATH.PpParams).pose)
     } else {
@@ -37,9 +41,19 @@ export function computeForwardJacobianAlternative(
     for (let col = 1; col < link_number; col++) {
         /* T_ip1_i */
         if (NMATH.LinkParamRepresentation.LINK_DH == link_params[col].type) {
-            pose.copy((link_params[col].params as NMATH.DhParams).toPose(false))
+            pose.copy(
+                (link_params[col].params as NMATH.DhParams).toPose(
+                    false,
+                    link_params[col].angularUnits
+                )
+            )
         } else if (NMATH.LinkParamRepresentation.LINK_MODIFIED_DH == link_params[col].type) {
-            pose.copy((link_params[col].params as NMATH.DhParams).toPose(true))
+            pose.copy(
+                (link_params[col].params as NMATH.DhParams).toPose(
+                    true,
+                    link_params[col].angularUnits
+                )
+            )
         } else if (NMATH.LinkParamRepresentation.LINK_PP == link_params[col].type) {
             pose.copy((link_params[col].params as NMATH.PpParams).pose)
         } else {
@@ -57,42 +71,31 @@ export function computeForwardJacobianAlternative(
 
         R_i_ip1.invert()
 
-        // console.log("P_ip1_i", P_ip1_i)
         const R_i_ip1_nm = new NMATH.MatrixN(3, 3).setFromMatrix3(R_i_ip1)
 
         const scratch = new NMATH.MatrixN(3, link_number).copy(Jw)
-        // console.log("scratch before cross", scratch)
+
         scratch.crossVector(P_ip1_i)
-        // go_matrix_vector_cross(&Jw, P_ip1_i, &scratch);
-        // console.log("scratch after cross", scratch)
+
         scratch.addMatrices(Jv, scratch)
-        // go_matrix_matrix_add(&Jv, &scratch, &scratch);
 
         const Jvtemp1 = new NMATH.MatrixN(3, link_number)
 
         Jvtemp1.multiplyMatrices(R_i_ip1_nm, scratch)
 
         Jv.copy(Jvtemp1)
-        // console.log(Jv)
-        // go_matrix_matrix_mult(&R_i_ip1, &scratch, &Jv);
 
         Jv.el[0][col] = 0
         Jv.el[1][col] = 0
         Jv.el[2][col] = NMATH.LinkQuantities.QUANTITY_LENGTH == link_params[col].quantity ? 1 : 0
 
-        // console.log("Jw", Jw)
-        // console.log("R_i_ip1_nm", R_i_ip1_nm)
         const Jwtemp1 = new NMATH.MatrixN(3, link_number)
         Jwtemp1.multiplyMatrices(R_i_ip1_nm, Jw)
-        // console.log("Jwtemp1", Jwtemp1)
         Jw.copy(Jwtemp1)
         Jw.el[0][col] = 0
         Jw.el[1][col] = 0
         Jw.el[2][col] = NMATH.LinkQuantities.QUANTITY_ANGLE == link_params[col].quantity ? 1 : 0
     }
-
-    // console.log("Jv", Jv)
-    // console.log("Jw", Jw)
 
     const T_L_0_m3 = new THREE.Matrix3().setFromMatrix4(T_L_0)
 

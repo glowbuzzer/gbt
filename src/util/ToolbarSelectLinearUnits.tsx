@@ -4,11 +4,10 @@ import { Select } from "antd"
 import { DockToolbarButtonGroup } from "./DockToolbar"
 import { LinearUnits } from "../types"
 
-export const ToolbarSelectLinearUnits = () => {
+export const ToolbarSelectLinearUnits = ({ disabled = false }) => {
     const { linearUnits, setLinearUnits } = useTileContext()
 
     function update_units(e) {
-        console.log("e", e)
         setLinearUnits(e)
     }
 
@@ -20,7 +19,12 @@ export const ToolbarSelectLinearUnits = () => {
 
     return (
         <DockToolbarButtonGroup>
-            <Select value={linearUnits} onChange={update_units} options={options} />
+            <Select
+                disabled={disabled}
+                value={linearUnits}
+                onChange={update_units}
+                options={options}
+            />
         </DockToolbarButtonGroup>
     )
 }

@@ -13,24 +13,32 @@ export default function convertClassicToModifiedDh(links: KinematicsLink[]): Kin
     const newLinks: KinematicsLink[] = []
 
     //First link
+    newLinks[0] = new KinematicsLink()
+
     if (
-        links[0].type == LinkParamRepresentation.LINK_DH ||
-        links[0].type == LinkParamRepresentation.LINK_MODIFIED_DH
+        links[0].type == LinkParamRepresentation.LINK_DH
+        // ||
+        //   links[0].type == LinkParamRepresentation.LINK_MODIFIED_DH
     ) {
-        newLinks[0] = new KinematicsLink()
         const dhNew = newLinks[0].params as DhParams
         const dhCurrent = links[0].params as DhParams
         newLinks[0].type = LinkParamRepresentation.LINK_MODIFIED_DH
-        newLinks[0].quantity = LinkQuantities.QUANTITY_ANGLE
+        newLinks[0].angularUnits = links[0].angularUnits
+        newLinks[0].linearUnits = links[0].linearUnits
+        newLinks[0].quantity = links[0].quantity
         newLinks[0].body.copy(links[0].body)
         dhNew.thetaInitialOffset = dhCurrent.thetaInitialOffset
+        dhNew.dInitialOffset = dhCurrent.dInitialOffset
         dhNew.theta = dhCurrent.theta
         dhNew.positiveLimit = dhCurrent.positiveLimit
         dhNew.negativeLimit = dhCurrent.negativeLimit
         if (links[0].quantity == LinkQuantities.QUANTITY_ANGLE) {
             dhNew.a = dhCurrent.a
+            dhNew.a = 0
+
             dhNew.alpha = 0
             dhNew.d = dhCurrent.d
+
             //theta is variable and d is fixed
             dhNew.theta = dhCurrent.theta
             // link(1) = Link('modified', 'revolute', ...
@@ -55,24 +63,33 @@ export default function convertClassicToModifiedDh(links: KinematicsLink[]): Kin
             )
         }
     } else {
-        throw new Error("convertClassicToModifiedDhParams: link type is not DH or MODIFIED_DH")
+        // throw new Error("convertClassicToModifiedDhParams: link type is not DH or MODIFIED_DH")
+
+        newLinks[0].copy(links[0])
     }
 
     //Middle links
     for (let i = 1; i < numberOfLinks; i++) {
+        newLinks[i] = new KinematicsLink()
+
         if (
-            links[i].type == LinkParamRepresentation.LINK_DH ||
-            links[i].type == LinkParamRepresentation.LINK_MODIFIED_DH
+            links[i].type == LinkParamRepresentation.LINK_DH
+            // ||
+            //   links[i].type == LinkParamRepresentation.LINK_MODIFIED_DH
         ) {
-            newLinks[i] = new KinematicsLink()
             const dhNew = newLinks[i].params as DhParams
             const dhPrevious = links[i - 1].params as DhParams
             const dhCurrent = links[i].params as DhParams
 
             newLinks[i].type = LinkParamRepresentation.LINK_MODIFIED_DH
-            newLinks[i].quantity = LinkQuantities.QUANTITY_ANGLE
+            newLinks[i].quantity = links[i].quantity
+            newLinks[i].angularUnits = links[i].angularUnits
+            newLinks[i].linearUnits = links[i].linearUnits
+
             newLinks[i].body.copy(links[0].body)
             dhNew.thetaInitialOffset = dhCurrent.thetaInitialOffset
+            dhNew.dInitialOffset = dhCurrent.dInitialOffset
+
             dhNew.theta = dhCurrent.theta
             dhNew.positiveLimit = dhCurrent.positiveLimit
             dhNew.negativeLimit = dhCurrent.negativeLimit
@@ -101,12 +118,13 @@ export default function convertClassicToModifiedDh(links: KinematicsLink[]): Kin
                 //d is variable
             } else if (links[i].quantity == LinkQuantities.QUANTITY_NONE) {
             } else {
-                throw new Error(
-                    "convertClassicToModifiedDhParams: link quantity is not ANGLE or LENGTH or NONE"
-                )
+                // throw new Error(
+                //     "convertClassicToModifiedDhParams: link quantity is not ANGLE or LENGTH or NONE"
+                // )
             }
         } else {
-            throw new Error("convertClassicToModifiedDhParams: link type is not DH or MODIFIED_DH")
+            // throw new Error("convertClassicToModifiedDhParams: link type is not DH or MODIFIED_DH")
+            newLinks[i].copy(links[i])
         }
     }
     return newLinks

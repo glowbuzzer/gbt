@@ -10,8 +10,6 @@ export default function Lubksb(lu, update, b) {
     var idx = lu.idx
     var n = idx.length
 
-    // console.log(A, idx, n, b)
-
     if (!update) {
         // make a copy of b
         var bcpy = new Array(n)
@@ -32,6 +30,6 @@ export default function Lubksb(lu, update, b) {
         for (let j = i + 1; j < n; j++) sum -= A[i][j] * b[j]
         b[i] = sum / A[i][i]
     }
-    // console.log("b", b)
+
     return b // solution vector x
 }

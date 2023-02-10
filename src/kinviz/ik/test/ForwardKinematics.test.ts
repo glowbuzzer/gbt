@@ -5,11 +5,10 @@ import { describe, it, assert, expect, test } from "vitest"
 import * as THREE from "three"
 import * as NAMTH from "../NMATH/index"
 import { computeForwardJacobian } from "../ForwardJacobian"
-import {
-    adeptCobra600Classic,
-    staubliTx40Classic,
-    staubliTx40Modified
-} from "../GenericSerialConfigs"
+import { staubliTx40Modified } from "../ExampleMachines/StaubliTx40Modified"
+import { staubliTx40Classic } from "../ExampleMachines/StaubliTx40Classic"
+import { adeptCobra600Classic } from "../ExampleMachines/AdeptCobra600Classic"
+
 import { forwardKinematics } from "../ForwardKinematics"
 import { computeForwardJacobianAlternative } from "../ForwardJacobianAlternative"
 

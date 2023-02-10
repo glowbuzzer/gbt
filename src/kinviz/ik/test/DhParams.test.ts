@@ -10,7 +10,7 @@ describe("dhParams", () => {
     test("toPose - classic dh", () => {
         const dh = new NMATH.DhParams(5, Math.PI / 2, 5, 0, 0, 0)
 
-        const pose = dh.toPose(false)
+        const pose = dh.toPose(false, NMATH.AngularUnits.UNITS_RAD)
 
         const position = new THREE.Vector3().setFromMatrixPosition(pose)
         const orientationQ = new THREE.Quaternion().setFromRotationMatrix(pose)
@@ -31,7 +31,7 @@ describe("dhParams", () => {
     test("toPose - modified dh", () => {
         const dh = new NMATH.DhParams(5, Math.PI / 2, 5, 0, 0, 0)
 
-        const pose = dh.toPose(true)
+        const pose = dh.toPose(true, NMATH.AngularUnits.UNITS_RAD)
 
         const position = new THREE.Vector3().setFromMatrixPosition(pose)
         const orientationQ = new THREE.Quaternion().setFromRotationMatrix(pose)

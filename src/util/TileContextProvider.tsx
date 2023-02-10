@@ -2,15 +2,19 @@ import * as React from "react"
 import { createContext, FC } from "react"
 import styled from "styled-components"
 import { useLocalStorage } from "./LocalStorageHook"
-import { AngularUnits, LinearUnits } from "../types"
+import { AngularUnits, DhType, LinearUnits, ExtentValues } from "../types"
 
 type TileContextType = {
     angularUnits: AngularUnits
     linearUnits: LinearUnits
     precision: number
+    dhType: DhType
+    extents: ExtentValues
     setPrecision: (precision: number) => void
     setLinearUnits: (units: LinearUnits) => void
     setAngularUnits: (units: AngularUnits) => void
+    setDhType: (dhType: DhType) => void
+    setExtents: (extents: ExtentValues) => void
     toLocalAngularUnits: (value: number) => number
     toStandardAngularUnits: (value: number) => number
     toLocalLinearUnits: (value: number) => number
@@ -51,13 +55,24 @@ export const TileContextProvider: FC<TiledContextProviderProps> = ({
     )
     const [precision, setPrecision] = useLocalStorage(make_key("precision"), 2)
 
+    const [dhType, setDhType] = useLocalStorage<DhType>(make_key("dhType"), DhType.CLASSIC)
+
+    const [extents, setExtents] = useLocalStorage<ExtentValues>(
+        make_key("extents"),
+        ExtentValues.MM500
+    )
+
     const context: TileContextType = {
         linearUnits,
         angularUnits,
         precision,
+        dhType,
+        extents,
         setPrecision,
         setLinearUnits,
         setAngularUnits,
+        setDhType,
+        setExtents,
         toLocalAngularUnits(value: number) {
             if (angularUnits === "deg") {
                 return (value * 180) / Math.PI

@@ -14,13 +14,35 @@ import { ToolbarButtonsPrecision } from "../../util/ToolbarButtonsPrecision"
 import { ToolbarSelectLinearUnits } from "../../util/ToolbarSelectLinearUnits"
 import { MatrixTypeset } from "./mathTypesetting/MatrixTypeset"
 import { MathJax, MathJaxContext } from "better-react-mathjax"
-import { Matrix, inverse } from "ml-matrix"
+import * as THREE from "three"
+import { round } from "three/examples/jsm/nodes/shadernode/ShaderNodeBaseElements"
 import { AngularUnits, LinearUnits } from "../../types"
-
-const APP_KEY = "kinviz"
 
 function RenderMatrix({ matrix }) {
     const { precision } = useTileContext()
+
+    const position = new THREE.Vector3().setFromMatrixPosition(matrix)
+    const orientation = new THREE.Euler().setFromRotationMatrix(matrix)
+
+    //     \begin{bmatrix}
+    //     x\\
+    // y\\
+    // z\\
+    // R_{x}\\
+    // R_{x}\\
+    // R_{z}
+    // \end{bmatrix}
+
+    //todo add offset orinetation etc.
+
+    const combinedMatrix = new NMATH.MatrixN(6, 1, [
+        [position.x],
+        [position.y],
+        [position.z],
+        [orientation.x],
+        [orientation.y],
+        [orientation.z]
+    ])
 
     // return (
     //     <div>
@@ -38,29 +60,75 @@ function RenderMatrix({ matrix }) {
     //     </div>
     // )
 
-    return <MatrixTypeset mat={matrix} name={"J"} prec={precision} />
+    return (
+        <MatrixTypeset
+            mat={combinedMatrix}
+            name={
+                "\\begin{bmatrix}\n" +
+                "x\\\\ \n" +
+                "y\\\\ \n" +
+                "z\\\\ \n" +
+                "R_{x}\\\\ \n" +
+                "R_{x}\\\\ \n" +
+                "R_{z}\n" +
+                "\\end{bmatrix}"
+            }
+            prec={precision}
+        />
+    )
 }
 
-export const JacobianTile = () => {
+export const ForwardKinematicsTile = () => {
     const { dataSource, setDataSource, robotInScene, setRobotInScene } = useKinViz()
+
+    const linkout: NMATH.KinematicsLink[] = []
+
+    const thetasAndDs = []
+    for (let link = 0; link < dataSource.length; link++) {
+        if (dataSource[link].quantity == NMATH.LinkQuantities.QUANTITY_ANGLE) {
+            thetasAndDs[link] = (dataSource[link].params as NMATH.DhParams).theta
+        } else if (dataSource[link].quantity == NMATH.LinkQuantities.QUANTITY_LENGTH) {
+            thetasAndDs[link] = (dataSource[link].params as NMATH.DhParams).d
+        } else {
+            //wwhat to do with fixed
+        }
+    }
+
+    // const tempDataSource: NMATH.KinematicsLink[] = [...dataSource]
+
+    for (let link = 0; link < dataSource.length; link++) {
+        linkout[link] = dataSource[link].jointSet(thetasAndDs[link], false)
+    }
+
+    const joints = []
+
+    const fwd = NMATH.PoseBuild(linkout, dataSource.length)
 
     var isError = false
     var jacobian
     var errorString
-    try {
-        jacobian = KIN.computeForwardJacobian(dataSource, dataSource.length)
-        isError = false
-    } catch (e) {
-        console.log("error", e)
-        isError = true
-        errorString = e
-    }
-
+    // var fwd
+    //
+    // fwd = KIN.forwardKinematics(genser, joints)
+    // try {
+    //     // jacobian = KIN.computeForwardJacobian(dataSource, dataSource.length)
+    //
+    //     isError = false
+    // } catch (e) {
+    //     console.log("error", e)
+    //     isError = true
+    //     errorString = e
+    // }
     // const Jfwd = jacobian.Jfwd
-    // console.log("dataSource", dataSource)
 
-    const { angularUnits, precision, linearUnits, setAngularUnits, setLinearUnits } =
+    const { angularUnits, precision, linearUnits, setLinearUnits, setAngularUnits } =
         useTileContext()
+
+    const matrixWithOffset = new THREE.Matrix4()
+    const robotRotQ = new THREE.Quaternion().setFromEuler(robotInScene.rotation)
+    matrixWithOffset.compose(robotInScene.position, robotRotQ, new THREE.Vector3(1, 1, 1))
+
+    matrixWithOffset.multiply(fwd.pose)
 
     useEffect(() => {
         if (dataSource[0].linearUnits == NMATH.LinearUnits.UNITS_IN) {
@@ -90,55 +158,21 @@ export const JacobianTile = () => {
             <StyledTile>
                 <MathJaxContext>
                     <div>
-                        If <MathJax inline>{"\\(\\textbf{x}\\)"}</MathJax> is the end-effector and{" "}
-                        <MathJax inline>{"\\(\\textbf{q}\\)"}</MathJax> is the joint angles, then
-                        the Jacobian is the matrix that relates the end-effector position and
-                        orientation to the joint angles. The Jacobian is just a set of partial
-                        differential equations:
-                        <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "center",
-                                paddingTop: 5,
-                                paddingBottom: 5
-                            }}
-                        >
-                            <MathJax>
-                                {
-                                    "\\(\\textbf{J} = \\frac{\\partial \\textbf{x}}{\\partial \\textbf{q}}\\)"
-                                }
-                            </MathJax>
-                        </div>
-                        It is calculated from the forward-transformation matrices which are
+                        Forward kinematics is the process of calculating the position and
+                        orientation of the end-effector of a robot, given the current set of joint
+                        angles. It is calculated from the forward-transformation matrices which are
                         themselves calculated from the DH parameters. For the current robot
-                        definition, the Jacobian, at the current set of joint angles is:
+                        definition, end-effector position and orientation are:
                         {isError ? (
                             <div style={{ paddingTop: 5, paddingBottom: 5, color: "red" }}>
                                 Error: can't calculate Jacobian{" "}
                             </div>
                         ) : (
-                            <RenderMatrix matrix={jacobian.Jfwd} />
+                            <RenderMatrix matrix={matrixWithOffset} />
                         )}
+                        This takes into account the robot's placement in the world (offsets in
+                        position and orirnetation).
                         {/*<MatrixTypeset mat={testMatrix} name={"test"} />*/}
-                    </div>
-                    <div>
-                        Remember the basics:
-                        <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "center",
-                                paddingTop: 5,
-                                paddingBottom: 5
-                            }}
-                        >
-                            <MathJax>
-                                {"\\(\\dot{\\textbf{x}} = \\textbf{J} \\; \\dot{\\textbf{q}}\\)"}
-                            </MathJax>
-                        </div>
-                        This tells us that the end-effector velocity (in cartesian space) is equal
-                        to the Jacobian,
-                        <MathJax inline>{"\\(\\textbf{J}\\)"}</MathJax>, multiplied by the joint
-                        angle velocities.
                     </div>
                 </MathJaxContext>
             </StyledTile>

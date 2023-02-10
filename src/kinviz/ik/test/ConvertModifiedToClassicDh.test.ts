@@ -5,7 +5,8 @@
 import { describe, it, assert, expect, test } from "vitest"
 import * as THREE from "three"
 import * as NMATH from "../NMATH/index"
-import { staubliTx40Classic, staubliTx40Modified } from "../GenericSerialConfigs"
+import { staubliTx40Classic } from "../ExampleMachines/StaubliTx40Classic"
+import { staubliTx40Modified } from "../ExampleMachines/StaubliTx40Modified"
 
 describe("ConvertModifiedToClassicDh", () => {
     test("ConvertModifiedToClassicDh - 1", () => {
