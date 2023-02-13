@@ -27,7 +27,7 @@ export const MatrixTypeset = ({
     const _elem = (i, j) => mat.el.flat()[j + i * mat.cols].toFixed(prec)
 
     const _name = name
-    const _texElems = "\\[".concat(
+    const _texElems = "".concat(
         (_name ? `${_name}=` : "matrix =").concat(
             `\\left[\\begin{array}{${Array(mat.cols).fill("c").join("")}}`.concat(
                 range(mat.rows)
@@ -37,7 +37,7 @@ export const MatrixTypeset = ({
                             .join("&&")
                     )
                     .join("\\\\")
-                    .concat("\\end{array}\\right]\\]")
+                    .concat("\\end{array}\\right]")
             )
         )
     )
@@ -47,12 +47,12 @@ export const MatrixTypeset = ({
             <span>
                 <MathJax
                     dynamic
-                    // typesettingOptions={{ fn: "tex2chtmlPromise" }}
-                    // renderMode="pre"
-                    hideUntilTypeset="every"
-                    // text={_texElems}
+                    typesettingOptions={{ fn: "tex2chtmlPromise" }}
+                    renderMode="pre"
+                    // hideUntilTypeset="every"
+                    text={_texElems}
                 >
-                    {_texElems}
+                    {/*{_texElems}*/}
                 </MathJax>
             </span>
         </div>
