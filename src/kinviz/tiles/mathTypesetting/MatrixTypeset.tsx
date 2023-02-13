@@ -41,5 +41,9 @@ export const MatrixTypeset = ({
             )
         )
     )
-    return <MathJax>{_texElems}</MathJax>
+    return (
+        <p>
+            <MathJax>{_texElems}</MathJax>
+        </p>
+    )
 }
