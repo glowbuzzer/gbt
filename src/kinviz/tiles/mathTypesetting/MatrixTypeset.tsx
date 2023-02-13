@@ -41,9 +41,20 @@ export const MatrixTypeset = ({
             )
         )
     )
+
     return (
-        <p>
-            <MathJax hideUntilTypeset="first">{_texElems}</MathJax>
-        </p>
+        <div>
+            <span>
+                <MathJax
+                    dynamic
+                    // typesettingOptions={{ fn: "tex2chtmlPromise" }}
+                    // renderMode="pre"
+                    hideUntilTypeset="every"
+                    // text={_texElems}
+                >
+                    {_texElems}
+                </MathJax>
+            </span>
+        </div>
     )
 }
