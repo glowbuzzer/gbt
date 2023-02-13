@@ -95,14 +95,9 @@ export function computeForwardJacobian(
     //     A0.clone().transpose().elements[15]
     // )
 
-    // te[ 8 ], te[ 9 ], te[ 10 ]
-    // console.log("A0", A0.elements[8], A0.elements[9], A0.elements[10])
-    // zi[0] = new THREE.Vector3(A0.elements[8], A0.elements[9], A0.elements[10])
-
     zi[0] = new THREE.Vector3()
     A0.extractBasis(new THREE.Vector3(), new THREE.Vector3(), zi[0])
 
-    // ti[0] = new THREE.Vector3().copy(T_L_0.tran)
     ti[0] = new THREE.Vector3().setFromMatrixPosition(T_L_0)
 
     for (let col = 1; col < link_number; col++) {

@@ -69,8 +69,11 @@ export default class DhParams {
         var adjustedA: number = 0
         //if prismatic then theta offset should be zero
         if (angularUnits == AngularUnits.UNITS_DEG) {
+            //todo FIX THIS
             adjustedTheta = this.theta * (Math.PI / 180) + this.thetaInitialOffset * (Math.PI / 180)
             adjustedAlpha = this.alpha * (Math.PI / 180)
+            // adjustedTheta = this.theta + this.thetaInitialOffset
+            // adjustedAlpha = this.alpha
         } else {
             adjustedTheta = this.theta + this.thetaInitialOffset
             adjustedAlpha = this.alpha

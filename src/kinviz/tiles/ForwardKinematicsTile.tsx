@@ -24,16 +24,7 @@ function RenderMatrix({ matrix }) {
     const position = new THREE.Vector3().setFromMatrixPosition(matrix)
     const orientation = new THREE.Euler().setFromRotationMatrix(matrix)
 
-    //     \begin{bmatrix}
-    //     x\\
-    // y\\
-    // z\\
-    // R_{x}\\
-    // R_{x}\\
-    // R_{z}
-    // \end{bmatrix}
-
-    //todo add offset orinetation etc.
+    //todo add offset orientation etc.
 
     const combinedMatrix = new NMATH.MatrixN(6, 1, [
         [position.x],
@@ -43,22 +34,6 @@ function RenderMatrix({ matrix }) {
         [orientation.y],
         [orientation.z]
     ])
-
-    // return (
-    //     <div>
-    //         [
-    //         {matrix.el.map((row, i) => (
-    //             <div key={i}>
-    //                 [
-    //                 {row.map((col, j) => (
-    //                     <span key={j}>{col.toFixed(precision)} </span>
-    //                 ))}
-    //                 ]
-    //             </div>
-    //         ))}
-    //         ]
-    //     </div>
-    // )
 
     return (
         <MatrixTypeset
@@ -80,49 +55,12 @@ function RenderMatrix({ matrix }) {
 
 export const ForwardKinematicsTile = () => {
     const { dataSource, setDataSource, robotInScene, setRobotInScene } = useKinViz()
-
-    const linkout: NMATH.KinematicsLink[] = []
-
-    const thetasAndDs = []
-    for (let link = 0; link < dataSource.length; link++) {
-        if (dataSource[link].quantity == NMATH.LinkQuantities.QUANTITY_ANGLE) {
-            thetasAndDs[link] = (dataSource[link].params as NMATH.DhParams).theta
-        } else if (dataSource[link].quantity == NMATH.LinkQuantities.QUANTITY_LENGTH) {
-            thetasAndDs[link] = (dataSource[link].params as NMATH.DhParams).d
-        } else {
-            //wwhat to do with fixed
-        }
-    }
-
-    // const tempDataSource: NMATH.KinematicsLink[] = [...dataSource]
-
-    for (let link = 0; link < dataSource.length; link++) {
-        linkout[link] = dataSource[link].jointSet(thetasAndDs[link], false)
-    }
-
-    const joints = []
-
-    const fwd = NMATH.PoseBuild(linkout, dataSource.length)
-
-    var isError = false
-    var jacobian
-    var errorString
-    // var fwd
-    //
-    // fwd = KIN.forwardKinematics(genser, joints)
-    // try {
-    //     // jacobian = KIN.computeForwardJacobian(dataSource, dataSource.length)
-    //
-    //     isError = false
-    // } catch (e) {
-    //     console.log("error", e)
-    //     isError = true
-    //     errorString = e
-    // }
-    // const Jfwd = jacobian.Jfwd
-
     const { angularUnits, precision, linearUnits, setLinearUnits, setAngularUnits } =
         useTileContext()
+
+    const fwd = NMATH.PoseBuild(dataSource, dataSource.length)
+
+    var isError = false
 
     const matrixWithOffset = new THREE.Matrix4()
     const robotRotQ = new THREE.Quaternion().setFromEuler(robotInScene.rotation)
@@ -171,7 +109,7 @@ export const ForwardKinematicsTile = () => {
                             <RenderMatrix matrix={matrixWithOffset} />
                         )}
                         This takes into account the robot's placement in the world (offsets in
-                        position and orirnetation).
+                        position and orientation).
                         {/*<MatrixTypeset mat={testMatrix} name={"test"} />*/}
                     </div>
                 </MathJaxContext>

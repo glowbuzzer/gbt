@@ -13,6 +13,7 @@ import { forwardKinematics } from "../ForwardKinematics"
 import { computeForwardJacobianAlternative } from "../ForwardJacobianAlternative"
 
 describe("ForwardKinematics", () => {
+    // works
     test("ForwardKinematics TX40 Modfified random joints", () => {
         const res = forwardKinematics(staubliTx40Modified, [
             (41.56 * Math.PI) / 180,
@@ -50,6 +51,7 @@ describe("ForwardKinematics", () => {
         expect(tcpQuat.w).toBeCloseTo(-0.008787559604329169)
     })
 
+    //works
     test("ForwardKinematics TX40 Classic 0 joints", () => {
         // console.log(staubliTx40.links[1].dh)
 
@@ -81,6 +83,7 @@ describe("ForwardKinematics", () => {
         //-225,35,290
     })
 
+    //works
     test("ForwardKinematics TX40 Modified 0 joints", () => {
         // console.log(staubliTx40.links[1].dh)
 
@@ -111,6 +114,7 @@ describe("ForwardKinematics", () => {
         expect(orientation.w).toBeCloseTo(1)
     })
 
+    //works
     test("ForwardKinematics TX40 - modified - orientated joints 1", () => {
         // console.log(staubliTx40.links[1].dh)
 
@@ -152,6 +156,7 @@ describe("ForwardKinematics", () => {
         //-225,35,290
     })
 
+    //works
     test("ForwardKinematics TX40 - modified - orientated joints 2", () => {
         // console.log(staubliTx40.links[1].dh)
 
@@ -189,6 +194,7 @@ describe("ForwardKinematics", () => {
         //-225,35,290
     })
 
+    //works
     test("ForwardKinematics TX40 - classic - orientated joints 2", () => {
         // console.log(staubliTx40.links[1].dh)
 
@@ -240,6 +246,7 @@ describe("ForwardKinematics", () => {
         //-225,35,290
     })
 
+    //works
     test("ForwardKinematics adeptCobra600 - classic - all zeros", () => {
         // console.log(staubliTx40.links[1].dh)
 

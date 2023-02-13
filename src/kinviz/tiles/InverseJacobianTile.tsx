@@ -18,8 +18,6 @@ import { computeInverseJacobian } from "../ik"
 import { inverse, Matrix } from "ml-matrix"
 import { AngularUnits, LinearUnits } from "../../types"
 
-const APP_KEY = "kinviz"
-
 function RenderMatrix({ matrix }) {
     const { precision } = useTileContext()
     // return (

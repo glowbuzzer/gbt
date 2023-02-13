@@ -4,14 +4,10 @@
  */
 
 import React, { createContext, FC, useContext, useEffect, useState } from "react"
-import { Euler, Quaternion } from "three"
-import niceColors from "nice-color-palettes"
 import { KinVizContextType, RobotInScene } from "./tiles/types"
 import * as THREE from "three"
 import * as NMATH from "./ik/NMATH"
-import { staubliTx40Classic } from "./ik/ExampleMachines/StaubliTx40Classic"
 import { AngularUnits, LinearUnits } from "../types"
-import { color } from "three/examples/jsm/nodes/shadernode/ShaderNodeBaseElements"
 
 const kinVizContext = createContext<KinVizContextType | null>(null)
 
@@ -44,8 +40,6 @@ export const KinVizProvider: FC<{ children }> = ({ children }) => {
     }
 
     const [robotInScene, setRobotInScene] = useState<RobotInScene>(defaultRobotInScene)
-
-    // const [extents, setExtents] = useState(ExtentValues.MM500)
 
     const [editing, setEditing] = useState(false)
 

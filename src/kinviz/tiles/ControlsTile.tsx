@@ -4,7 +4,6 @@
 
 import * as React from "react"
 import { useMemo, useEffect, useRef } from "react"
-// import { LinkTypeEnum, UnitsEnum } from "./types"
 import * as NMATH from "../ik/NMATH"
 import { useKinViz } from "../KinVizProvider"
 import { Slider } from "antd"
@@ -13,17 +12,10 @@ import { TileContextProvider, useTileContext } from "../../util/TileContextProvi
 import { AngularUnits, DhType, ExtentValues, LinearUnits } from "../../types"
 import { DockToolbar } from "../../util/DockToolbar"
 import { ToolbarRadioAngularUnits } from "../../util/ToolbarRadioAngularUnits"
-import { ToolbarButtonsPrecision } from "../../util/ToolbarButtonsPrecision"
 import { ToolbarSelectLinearUnits } from "../../util/ToolbarSelectLinearUnits"
-import { ToolbarSelectDhFormat } from "../../util/ToolbarSelectDhFormat"
-import KinVizGenericSerial from "./KinVizGenericSerial"
-
-const APP_KEY = "kinviz"
 
 const JointSliders = () => {
     const { dataSource, setDataSource, robotInScene, setRobotInScene } = useKinViz()
-
-    const test: KinVizGenericSerial = new KinVizGenericSerial(["a", "b", "c"])
 
     function getSliderLinearStep(
         linearUnits: NMATH.LinearUnits,

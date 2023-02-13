@@ -134,7 +134,7 @@ export const ThreeDimensionalViewTile = () => {
                     >
                         <LinkModel />
                     </group>
-                    <GizmoHelper alignment="bottom-right" margin={[80, 80]} renderPriority={0}>
+                    <GizmoHelper alignment="bottom-right" margin={[80, 80]} renderPriority={1}>
                         <GizmoViewcube
                             {...{
                                 faces: ["Right", "Left", "Back", "Front", "Top", "Bottom"]
@@ -173,9 +173,10 @@ const LinkModel = () => {
             totalLengthOfLinks += (link.params as NMATH.DhParams).d * factor
         })
 
-        if (totalLengthOfLinks > 1000) {
+        //1.2 factor to allow someone to move primsatic joints and not trigger a re-scale
+        if (totalLengthOfLinks * 1.2 > 1000) {
             setExtents(ExtentValues.M2)
-        } else if (totalLengthOfLinks > 500) {
+        } else if (totalLengthOfLinks * 1.2 > 500) {
             setExtents(ExtentValues.MM500)
         } else {
             setExtents(ExtentValues.MM200)

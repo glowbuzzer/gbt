@@ -54,6 +54,7 @@ export function inverseKinematics(
         /* update the Jacobians */
 
         for (let link = 0; link < genser.link_num; link++) {
+            //jointSet doesn't convert degrees to radians
             linkout[link] = genser.links[link].jointSet(jest[link], false)
             // weights[link] =
             //     IK.LinkQuantities.GO_QUANTITY_LENGTH == genser.links[link].quantity
@@ -63,6 +64,7 @@ export function inverseKinematics(
             //         : 1
         }
 
+        //compute forward jacobian will convert radians to degrees
         const { Jfwd: Jfwd, T_L_0: T_L_0 } = computeForwardJacobian(linkout, genser.link_num)
 
         const Jinv = new NMATH.MatrixN(genser.link_num, 6)

@@ -20,12 +20,6 @@ import { Button, InputNumber, Row, Col } from "antd"
 import styled from "styled-components"
 import { AngularUnits, LinearUnits } from "../../types"
 
-const LabelSpan = styled.span`
-    padding-right: 20px;
-    padding-left: 5px;
-    vertical-align: middle;
-`
-
 function RenderMatrix({ matrix }) {
     const { precision } = useTileContext()
 
@@ -50,12 +44,26 @@ function RenderMatrix({ matrix }) {
 
 export const InverseKinematicsTile = () => {
     const { dataSource, setDataSource, robotInScene, setRobotInScene } = useKinViz()
+    const { angularUnits, precision, linearUnits, setLinearUnits, setAngularUnits } =
+        useTileContext()
 
     const joints: number[] = []
 
     dataSource.forEach((row, i) => {
-        joints[i] = (row.params as NMATH.DhParams).theta
+        const dhData = row.params as NMATH.DhParams
+
+        if (row.quantity == NMATH.LinkQuantities.QUANTITY_ANGLE) {
+            if (row.angularUnits == NMATH.AngularUnits.UNITS_DEG) {
+                joints[i] = dhData.theta * (Math.PI / 180)
+            } else {
+                joints[i] = dhData.theta
+            }
+        } else if (row.quantity == NMATH.LinkQuantities.QUANTITY_LENGTH) {
+            joints[i] = (row.params as NMATH.DhParams).d
+        }
     })
+
+    //todo offsets
 
     const genser = new NMATH.GenericSerial()
     genser.links = dataSource
@@ -74,9 +82,21 @@ export const InverseKinematicsTile = () => {
 
     const [tcpPosRot, setTcpPosRot] = useState<posRot>(defaultTcpPosRot)
 
+    const radsEuler = new THREE.Euler(
+        tcpPosRot.rotation.x,
+        tcpPosRot.rotation.y,
+        tcpPosRot.rotation.z
+    )
+
+    if (angularUnits == AngularUnits.DEG) {
+        radsEuler.x = radsEuler.x * (Math.PI / 180)
+        radsEuler.y = radsEuler.y * (Math.PI / 180)
+        radsEuler.z = radsEuler.z * (Math.PI / 180)
+    }
+
     const tcpPosRotMatrix4 = new THREE.Matrix4().compose(
         tcpPosRot.position,
-        new THREE.Quaternion().setFromEuler(tcpPosRot.rotation),
+        new THREE.Quaternion().setFromEuler(radsEuler),
         new THREE.Vector3(1, 1, 1)
     )
 
@@ -84,9 +104,6 @@ export const InverseKinematicsTile = () => {
     var jacobian
     var errorString
     var ik
-
-    const { angularUnits, precision, linearUnits, setLinearUnits, setAngularUnits } =
-        useTileContext()
 
     useEffect(() => {
         if (dataSource[0].linearUnits == NMATH.LinearUnits.UNITS_IN) {
@@ -112,8 +129,19 @@ export const InverseKinematicsTile = () => {
         try {
             // jacobian = KIN.computeForwardJacobian(dataSource, dataSource.length)
             KIN.inverseKinematics(genser, tcpPosRotMatrix4, joints)
+
             newData.forEach((row, i) => {
-                ;(row.params as NMATH.DhParams).theta = joints[i] = joints[i]
+                const dhData = row.params as NMATH.DhParams
+
+                if (row.quantity == NMATH.LinkQuantities.QUANTITY_ANGLE) {
+                    if (row.angularUnits == NMATH.AngularUnits.UNITS_DEG) {
+                        dhData.theta = joints[i] * (180 / Math.PI)
+                    } else {
+                        dhData.theta = joints[i]
+                    }
+                } else if (row.quantity == NMATH.LinkQuantities.QUANTITY_LENGTH) {
+                    dhData.d = joints[i]
+                }
             })
 
             setDataSource(newData)
@@ -137,6 +165,7 @@ export const InverseKinematicsTile = () => {
         switch (component) {
             case 0: {
                 //x
+
                 if (value == null) value = 0
                 const newRot = tcpPosRot.rotation
                     .clone()
@@ -147,6 +176,7 @@ export const InverseKinematicsTile = () => {
             }
             case 1: {
                 //y
+
                 if (value == null) value = 0
 
                 const newRot = tcpPosRot.rotation
@@ -158,6 +188,7 @@ export const InverseKinematicsTile = () => {
             }
             case 2: {
                 //z
+
                 if (value == null) value = 0
 
                 const newRot = tcpPosRot.rotation

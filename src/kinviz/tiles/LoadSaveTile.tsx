@@ -3,9 +3,6 @@
  */
 import * as React from "react"
 import { useEffect, useState } from "react"
-import { PrecisionInput } from "../../util/PrecisionInput"
-// import { RotationInput, useRotations } from "../RotationsProvider"
-import { Euler } from "three"
 import { StyledTile } from "./styles"
 import { useKinViz } from "../KinVizProvider"
 import {
@@ -21,29 +18,10 @@ import {
     Upload,
     message
 } from "antd"
-import type { UploadProps } from "antd"
-import { UploadOutlined } from "@ant-design/icons"
 import { ExampleMachineSet } from "../ik/ExampleMachines/ExampleMachineSet"
-import { GenericSerial } from "../ik/NMATH"
-import * as NMATH from "../ik/NMATH"
-import { DhType } from "../../types"
-import { useTileContext } from "../../util/TileContextProvider"
-
-const dummyRequest = ({ file, onSuccess }) => {
-    setTimeout(() => {
-        onSuccess("ok")
-    }, 0)
-}
 
 export const LoadSaveTile = () => {
-    const {
-        dataSource,
-        setDataSource,
-        robotInScene,
-        setRobotInScene,
-        newDataLoaded,
-        setNewDataLoaded
-    } = useKinViz()
+    const { dataSource, setDataSource, setNewDataLoaded } = useKinViz()
     const [selectedPrecanned, setSelectedPrecanned] = useState(0)
 
     const handleLoadPrecanned = () => {

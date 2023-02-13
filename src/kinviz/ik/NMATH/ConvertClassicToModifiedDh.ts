@@ -33,10 +33,11 @@ export default function convertClassicToModifiedDh(links: KinematicsLink[]): Kin
         dhNew.positiveLimit = dhCurrent.positiveLimit
         dhNew.negativeLimit = dhCurrent.negativeLimit
         if (links[0].quantity == LinkQuantities.QUANTITY_ANGLE) {
-            dhNew.a = dhCurrent.a
+            // dhNew.a = dhCurrent.a
             dhNew.a = 0
 
             dhNew.alpha = 0
+            // dhNew.alpha = dhCurrent.alpha
             dhNew.d = dhCurrent.d
 
             //theta is variable and d is fixed
