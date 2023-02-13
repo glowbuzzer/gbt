@@ -101,15 +101,21 @@ export const ForwardKinematicsTile = () => {
                         angles. It is calculated from the forward-transformation matrices which are
                         themselves calculated from the DH parameters. For the current robot
                         definition, end-effector position and orientation are:
+                    </div>
+                    <div>
                         {isError ? (
                             <div style={{ paddingTop: 5, paddingBottom: 5, color: "red" }}>
                                 Error: can't calculate Jacobian{" "}
                             </div>
                         ) : (
-                            <RenderMatrix matrix={matrixWithOffset} />
+                            <div>
+                                <RenderMatrix matrix={matrixWithOffset} />
+                            </div>
                         )}
-                        This takes into account the robot's placement in the world (offsets in
-                        position and orientation).
+                        <p>
+                            This takes into account the robot's placement in the world (offsets in
+                            position and orientation).
+                        </p>
                         {/*<MatrixTypeset mat={testMatrix} name={"test"} />*/}
                     </div>
                 </MathJaxContext>
