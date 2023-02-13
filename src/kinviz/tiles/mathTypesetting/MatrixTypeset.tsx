@@ -43,7 +43,7 @@ export const MatrixTypeset = ({
     )
     return (
         <p>
-            <MathJax>{_texElems}</MathJax>
+            <MathJax renderMode={"pre"}>{_texElems}</MathJax>
         </p>
     )
 }

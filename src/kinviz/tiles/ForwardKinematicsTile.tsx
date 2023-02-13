@@ -116,7 +116,6 @@ export const ForwardKinematicsTile = () => {
                             This takes into account the robot's placement in the world (offsets in
                             position and orientation).
                         </p>
-                        {/*<MatrixTypeset mat={testMatrix} name={"test"} />*/}
                     </div>
                 </MathJaxContext>
             </StyledTile>
