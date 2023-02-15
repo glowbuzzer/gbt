@@ -108,7 +108,18 @@ export const ROTCONV_LAYOUT: IJsonModel = {
                 children: [
                     {
                         type: "tabset",
-                        id: "wide-tabset",
+                        id: "wide-tabset-top",
+                        children: [
+                            {
+                                type: "tab",
+                                id: "info",
+                                name: "Info"
+                            }
+                        ]
+                    },
+                    {
+                        type: "tabset",
+                        id: "wide-tabset-bottom",
                         enableDeleteWhenEmpty: false,
                         children: [
                             {

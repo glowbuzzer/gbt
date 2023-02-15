@@ -16,6 +16,7 @@ import { EditorTile } from "./tiles/EditorTile"
 import { useLocalStorage } from "../util/LocalStorageHook"
 import { ROTCONV_LAYOUT } from "./layout"
 import { AxisAngleTile } from "./tiles/AxisAngleTile"
+import { InfoTile } from "./tiles/InfoTile"
 
 const APP_KEY = "rotations"
 
@@ -88,6 +89,8 @@ export const RotationConverterPage = () => {
                 )
             case "scene":
                 return <ThreeTransformationViewTile />
+            case "info":
+                return <InfoTile />
             case "editor":
                 return (
                     <TileContextProvider appKey={APP_KEY} tileKey={"editor"}>
@@ -114,7 +117,7 @@ export const RotationConverterPage = () => {
                 <title>3D Rotation Converter - by glowbuzzer</title>
                 <meta
                     name="description"
-                    content="A tool to convert between different representations of 3D rotations"
+                    content="Convert between Euler angles, quaternions, matrices, axis angle and more with glowbuzzer's rotation converter"
                 />
             </Helmet>
             <GlobalBanner title={"3D Rotation Converter"} id="rotationconverter" />
