@@ -15,7 +15,7 @@ import { Helmet } from "react-helmet"
 import { EditorTile } from "./tiles/EditorTile"
 import { useLocalStorage } from "../util/LocalStorageHook"
 import { ROTCONV_LAYOUT } from "./layout"
-import { useEffect } from "react"
+import { AxisAngleTile } from "./tiles/AxisAngleTile"
 
 const APP_KEY = "rotations"
 
@@ -78,6 +78,12 @@ export const RotationConverterPage = () => {
                 return (
                     <TileContextProvider appKey={APP_KEY} tileKey={"translation"}>
                         <TranslationTile />
+                    </TileContextProvider>
+                )
+            case "axis-angle":
+                return (
+                    <TileContextProvider appKey={APP_KEY} tileKey={"axis-angle"}>
+                        <AxisAngleTile />
                     </TileContextProvider>
                 )
             case "scene":

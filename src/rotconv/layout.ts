@@ -62,6 +62,11 @@ export const ROTCONV_LAYOUT: IJsonModel = {
                         children: [
                             {
                                 type: "tab",
+                                id: "axis-angle",
+                                name: "Axis + Angle"
+                            },
+                            {
+                                type: "tab",
                                 id: "translation",
                                 name: "Translation"
                             }

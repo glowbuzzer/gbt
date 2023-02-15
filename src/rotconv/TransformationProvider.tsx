@@ -1,4 +1,4 @@
-import React, { createContext, FC, useContext, useEffect, useMemo, useState } from "react"
+import React, { createContext, FC, useContext, useMemo, useState } from "react"
 import { Euler, Matrix3, Matrix4, Quaternion, Vector3 } from "three"
 import { useLocalStorage } from "../util/LocalStorageHook"
 
@@ -8,7 +8,8 @@ export enum TransformationInput {
     QUATERNION,
     MATRIX4,
     MATRIX3,
-    VECTOR3
+    VECTOR3,
+    AXIS_ANGLE
 }
 
 type TransformationValues = {
@@ -26,6 +27,7 @@ type TransformationContextType = TransformationValues & {
     setMatrix3: (matrix3: Matrix3) => void
     setTranslation: (translation: Vector3) => void
     setMatrix4: (matrix4: Matrix4) => void
+    setAxisAngle: (x: number, y: number, z: number, angle: number) => void
 }
 
 const transformationContext = createContext<TransformationContextType | null>(null)
@@ -124,6 +126,14 @@ export const TransformationProvider: FC<{ children }> = ({ children }) => {
                 matrix4,
                 euler: new Euler().setFromRotationMatrix(matrix4, value.euler.order)
             })
+        },
+        setAxisAngle: (x: number, y: number, z: number, angle: number) => {
+            const quaternion = new Quaternion().setFromAxisAngle(new Vector3(x, y, z), angle)
+            set_rotation(
+                quaternion,
+                new Euler().setFromQuaternion(quaternion, value.euler.order),
+                TransformationInput.AXIS_ANGLE
+            )
         }
     }
 

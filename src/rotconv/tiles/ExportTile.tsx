@@ -61,7 +61,11 @@ export const ExportTile = () => {
             {contextHolder}
             <DockToolbar>
                 <ToolbarRadioAngularUnits
-                    disabled={(type || input) !== TransformationInput.EULER}
+                    disabled={
+                        ![TransformationInput.EULER, TransformationInput.AXIS_ANGLE].includes(
+                            type || input
+                        )
+                    }
                 />
                 <ToolbarButtonsPrecision />
             </DockToolbar>

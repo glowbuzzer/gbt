@@ -26,7 +26,8 @@ export const type_labels_factory = (none: string) => ({
     [TransformationInput.QUATERNION]: "Quaternion",
     [TransformationInput.MATRIX4]: "Matrix4",
     [TransformationInput.MATRIX3]: "Matrix3",
-    [TransformationInput.EULER]: "Euler"
+    [TransformationInput.EULER]: "Euler",
+    [TransformationInput.AXIS_ANGLE]: "Axis Angle"
 })
 
 export const StyledCopyPasteDiv = styled(StyledTile)`

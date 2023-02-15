@@ -70,7 +70,11 @@ export const EditorTile = () => {
     return (
         <StyledCopyPasteDiv>
             <DockToolbar>
-                <ToolbarRadioAngularUnits disabled={type !== TransformationInput.EULER} />
+                <ToolbarRadioAngularUnits
+                    disabled={
+                        ![TransformationInput.EULER, TransformationInput.AXIS_ANGLE].includes(type)
+                    }
+                />
             </DockToolbar>
 
             <div className="inner">

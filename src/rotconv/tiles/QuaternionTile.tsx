@@ -118,11 +118,6 @@ export const QuaternionTile = () => {
                     <ToolbarButtonNormalize onClick={normalize} />
                 </DockToolbarButtonGroup>
                 <ToolbarButtonsPrecision />
-                <DockToolbarButtonGroup>
-                    <Dropdown menu={{ items }}>
-                        <GlowbuzzerIcon Icon={CopyIcon} title="Copy to clipboard" button />
-                    </Dropdown>
-                </DockToolbarButtonGroup>
             </DockToolbar>
             <StyledTile>
                 <div className="input-wrapper">

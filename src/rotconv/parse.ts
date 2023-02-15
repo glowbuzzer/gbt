@@ -1,4 +1,4 @@
-import { Euler, Matrix3, Matrix4, Quaternion } from "three"
+import { Euler, Matrix3, Matrix4, Quaternion, Vector3 } from "three"
 import { TransformationInput } from "./TransformationProvider"
 import { CopyPasteFormat } from "./tiles/util"
 import { AngularUnits } from "../types"
@@ -73,7 +73,14 @@ function array_to_conversions(value: number[], angularUnits: AngularUnits): Conv
                 [TransformationInput.QUATERNION]: () =>
                     new Matrix4().makeRotationFromQuaternion(
                         new Quaternion(value[0], value[1], value[2], value[3])
+                    ),
+                [TransformationInput.AXIS_ANGLE]: () => {
+                    const q = new Quaternion().setFromAxisAngle(
+                        new Vector3(value[0], value[1], value[2]),
+                        rads(value[3])
                     )
+                    return new Matrix4().makeRotationFromQuaternion(q)
+                }
             }
         case 9:
             return {
