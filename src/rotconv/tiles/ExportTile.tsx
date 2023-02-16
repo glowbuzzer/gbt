@@ -11,6 +11,8 @@ import { useTileContext } from "../../util/TileContextProvider"
 import { ToolbarRadioAngularUnits } from "../../util/ToolbarRadioAngularUnits"
 import { useLocalStorage } from "../../util/LocalStorageHook"
 
+declare const gtag
+
 function valuesOf(obj: any): number[] {
     const all = Object.values(obj)
     return all.slice(all.length / 2).map(Number)
@@ -53,6 +55,12 @@ export const ExportTile = () => {
                 message: `Copied to clipboard`,
                 placement: "bottom"
             })
+
+            try {
+                gtag("event", "rotconv_engagement")
+            } catch (e) {
+                console.error(e)
+            }
         })
     }
 

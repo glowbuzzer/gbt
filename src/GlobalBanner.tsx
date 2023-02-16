@@ -4,6 +4,7 @@ import styled from "styled-components"
 import { Dropdown, MenuProps, Select, Space } from "antd"
 import { DownOutlined, GithubOutlined } from "@ant-design/icons"
 import { useNavigate } from "react-router"
+import { ExternalPageLink } from "./ExternalPageLink"
 
 const StyledDiv = styled.div`
     display: flex;
@@ -67,7 +68,11 @@ export const GlobalBanner = ({ title, id }) => {
                 </Dropdown>
             )}
             <div className="glowbuzzer-link">
-                <a href={"https://www.github.com/glowbuzzer/gbt"} className="github">
+                <ExternalPageLink
+                    to={"https://www.github.com/glowbuzzer/gbt"}
+                    className="github"
+                    event="exit_github"
+                >
                     <Space>
                         <div>
                             View on
@@ -76,11 +81,11 @@ export const GlobalBanner = ({ title, id }) => {
                         </div>
                         <GithubOutlined style={{ fontSize: "24px", color: "#9254de" }} />
                     </Space>
-                </a>
-                <a href="https://www.glowbuzzer.com">
+                </ExternalPageLink>
+                <ExternalPageLink to="https://www.glowbuzzer.com" event="exit_website">
                     <header>Brought to you by</header>
                     <GlowbuzzerLogo width={200} />
-                </a>
+                </ExternalPageLink>
             </div>
         </StyledDiv>
     )
