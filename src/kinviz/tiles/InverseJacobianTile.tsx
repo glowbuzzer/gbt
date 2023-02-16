@@ -117,20 +117,19 @@ export const InverseJacobianTile = () => {
                                 }
                             </MathJax>
                         </div>
-                        It is calculated by inverting the Jacobina. If the Jacobian is a square
+                        It is calculated by inverting the Jacobian. If the Jacobian is a square
                         matrix this is straight forward. For non square matrices, the pseudo-inverse
                         is used. As we approach singularities the inverse Jacobian values tend to
                         infinity. For the current robot definition, the inverse Jacobian, at the
                         current set of joint angles is:
-                        {isError ? (
-                            <div style={{ paddingTop: 5, paddingBottom: 5, color: "red" }}>
-                                Error: can't calculate Jacobian{" "}
-                            </div>
-                        ) : (
-                            <RenderMatrix matrix={jinv} />
-                        )}
+                        {/*{isError ? (*/}
+                        {/*    <div style={{ paddingTop: 5, paddingBottom: 5, color: "red" }}>*/}
+                        {/*        Error: can't calculate Jacobian{" "}*/}
+                        {/*    </div>*/}
+                        {/*) : (*/}
+                        {/*    <RenderMatrix matrix={jinv} />*/}
+                        {/*)}*/}
                         <RenderMatrix matrix={mlMatrixN} />
-                        {/*<MatrixTypeset mat={testMatrix} name={"test"} />*/}
                     </div>
                     <div></div>
                 </MathJaxContext>

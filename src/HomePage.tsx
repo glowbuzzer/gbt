@@ -56,7 +56,8 @@ export const HomePage = () => {
                 <title>Rotation Converter</title>
                 <div>
                     Comprehensive rotation and transformation converter. Copy and paste from other
-                    formats. Visualise transformations
+                    formats including three.js. Visualise transformations. Covers: Matrix4/3,
+                    Quaternion, Euler Angles, Axis Angle, Rodrigues.
                 </div>
             </section>
             <section onClick={() => navigate("/kinviz")}>
@@ -64,7 +65,11 @@ export const HomePage = () => {
                     Go <ArrowRightOutlined />
                 </Link>
                 <title>Kinematics Visualizer</title>
-                <div>Define a DH matrix and visualize the kinematics of a robot</div>
+                <div>
+                    Define a DH (Denavit–Hartenberg) matrix and visualize the kinematics of a robot.
+                    Calculates the kinematics structure's Jacobian and its inverse. Performs the
+                    forward and inverse kinematics for arbitrary kinematics chains.
+                </div>
             </section>
         </StyledDiv>
     )
