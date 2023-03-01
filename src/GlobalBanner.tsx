@@ -73,14 +73,20 @@ export const GlobalBanner = ({ title, id }) => {
                     className="github"
                     event="exit_github"
                 >
-                    <Space>
-                        <div>
-                            View on
-                            <br />
-                            GitHub
-                        </div>
-                        <GithubOutlined style={{ fontSize: "24px", color: "#9254de" }} />
-                    </Space>
+                    <span
+                        data-title="Suggestions?"
+                        data-intro="We welcome your feedback if you find a bug or have a feature request!"
+                        data-step={1000}
+                    >
+                        <Space>
+                            <div>
+                                View on
+                                <br />
+                                GitHub
+                            </div>
+                            <GithubOutlined style={{ fontSize: "24px", color: "#9254de" }} />
+                        </Space>
+                    </span>
                 </ExternalPageLink>
                 <ExternalPageLink to="https://www.glowbuzzer.com" event="exit_website">
                     <header>Brought to you by</header>

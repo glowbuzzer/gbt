@@ -1,5 +1,4 @@
 import { IJsonModel, Layout, Model, Node } from "flexlayout-react"
-import { GlobalLayout } from "../styles"
 import { TransformationProvider } from "./TransformationProvider"
 import { QuaternionTile } from "./tiles/QuaternionTile"
 import * as React from "react"
@@ -17,6 +16,10 @@ import { useLocalStorage } from "../util/LocalStorageHook"
 import { ROTCONV_LAYOUT } from "./layout"
 import { AxisAngleTile } from "./tiles/AxisAngleTile"
 import { InfoTile } from "./tiles/InfoTile"
+import introJs from "intro.js"
+
+import "intro.js/introjs.css"
+import { useEffect } from "react"
 
 const APP_KEY = "rotations"
 
@@ -48,6 +51,15 @@ function marshall(layout: IJsonModel): Model {
 export const RotationConverterPage = () => {
     const [storedLayout, setStoredLayout] = useLocalStorage(APP_KEY, ROTCONV_LAYOUT)
     const [model] = React.useState<Model>(marshall(storedLayout))
+
+    useEffect(() => {
+        setTimeout(() => {
+            introJs()
+                .setOption("dontShowAgain", true)
+                .setOption("dontShowAgainCookie", "rotconv-dontShowAgain")
+                .start()
+        }, 500)
+    }, [])
 
     function factory(node: Node) {
         switch (node.getId()) {

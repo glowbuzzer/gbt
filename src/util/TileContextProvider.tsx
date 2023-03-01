@@ -2,7 +2,7 @@ import * as React from "react"
 import { createContext, FC } from "react"
 import styled from "styled-components"
 import { useLocalStorage } from "./LocalStorageHook"
-import { AngularUnits, DhType, LinearUnits, ExtentValues } from "../types"
+import { AngularUnits, DhType, ExtentValues, LinearUnits } from "../types"
 
 type TileContextType = {
     angularUnits: AngularUnits

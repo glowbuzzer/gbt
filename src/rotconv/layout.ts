@@ -94,7 +94,7 @@ export const ROTCONV_LAYOUT: IJsonModel = {
                                     {
                                         type: "tab",
                                         id: "export",
-                                        name: "Export"
+                                        name: "Copy to Clipboard"
                                     }
                                 ]
                             }

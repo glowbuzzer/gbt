@@ -1,6 +1,8 @@
 import React from "react"
 import { StyledTile } from "./styles"
 import styled from "styled-components"
+import { Button } from "antd"
+import introJs from "intro.js"
 
 const StyledDiv = styled.div`
     p {
@@ -9,6 +11,10 @@ const StyledDiv = styled.div`
 `
 
 export const InfoTile = () => {
+    function show_tour() {
+        introJs().start()
+    }
+
     return (
         <StyledTile>
             <StyledDiv>
@@ -20,6 +26,11 @@ export const InfoTile = () => {
                     translations.
                 </p>
                 <p>
+                    <Button size="small" onClick={show_tour}>
+                        Show Tour
+                    </Button>
+                </p>
+                <p>
                     The page is split into several tiles. Each tile can be moved and resized. The
                     tiles can be re-arranged by dragging them around.
                 </p>
@@ -29,14 +40,13 @@ export const InfoTile = () => {
                     adjust the rotation and translation.
                 </p>
                 <p>
-                    Quickly perform raw edits or paste values from the clipboard using the Edit
-                    tile. We will do our best to parse the value and update the current rotation
-                    accordingly. If the type is ambiguous, you can use the type dropdown to specify
-                    the type.
+                    Perform raw edits or paste values from the clipboard using the Edit tile. We
+                    will do our best to parse the value and update the current rotation accordingly.
+                    If the type is ambiguous, you can use the type dropdown to specify the type.
                 </p>
                 <p>
-                    You can export the current rotation in various types and formats. The auto
-                    setting will use the tile you last edited to dictate the type, or you can
+                    Copy the current rotation in various types and formats to the clipboard. The
+                    auto setting will use the tile you last edited to dictate the type, or you can
                     specify the type explicitly.
                 </p>
                 <p>

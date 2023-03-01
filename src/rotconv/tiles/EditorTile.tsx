@@ -68,7 +68,10 @@ export const EditorTile = () => {
         .filter(({ value }) => validTypes.includes(value))
 
     return (
-        <StyledCopyPasteDiv>
+        <StyledCopyPasteDiv
+            data-title="Text Input"
+            data-intro="Use this tile to manually enter values, or paste from clipboard."
+        >
             <DockToolbar>
                 <ToolbarRadioAngularUnits
                     disabled={
@@ -81,24 +84,29 @@ export const EditorTile = () => {
                 <div className="textarea">
                     <TextArea value={edit} onChange={e => setEdit(e.target.value)} />
                 </div>
-                {loading ? (
-                    <Spin size="small" />
-                ) : (
-                    <div>
-                        {format !== undefined && <Tag>{format_labels[format]}</Tag>}
-                        {type_options.length > 1 ? (
-                            <Select
-                                dropdownMatchSelectWidth={false}
-                                size="small"
-                                options={type_options}
-                                value={type}
-                                onChange={setType}
-                            />
-                        ) : (
-                            <Tag>{type_labels[type]}</Tag>
-                        )}
-                    </div>
-                )}
+                <span
+                    data-title="Input Format and Type"
+                    data-intro="We will attempt to parse your input to determine the format (for example, comma separated) and type (euler, quaternion and so on). If the type is ambiguous you can choose the type you need"
+                >
+                    {loading ? (
+                        <Spin size="small" />
+                    ) : (
+                        <div>
+                            {format !== undefined && <Tag>{format_labels[format]}</Tag>}
+                            {type_options.length > 1 ? (
+                                <Select
+                                    dropdownMatchSelectWidth={false}
+                                    size="small"
+                                    options={type_options}
+                                    value={type}
+                                    onChange={setType}
+                                />
+                            ) : (
+                                <Tag>{type_labels[type]}</Tag>
+                            )}
+                        </div>
+                    )}
+                </span>
                 <Button
                     size="small"
                     disabled={loading || !conversion || type === TransformationInput.NONE}

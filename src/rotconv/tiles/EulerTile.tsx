@@ -87,7 +87,9 @@ export const EulerTile = () => {
     return (
         <>
             <DockToolbar>
-                <ToolbarRadioAngularUnits />
+                <span data-title="Unit Selection" data-intro="Choose between degrees and radians">
+                    <ToolbarRadioAngularUnits />
+                </span>
                 <ToolbarButtonsPrecision />
             </DockToolbar>
             <StyledTile>
@@ -114,17 +116,22 @@ export const EulerTile = () => {
                                     value={euler.order}
                                     onChange={update_euler_order}
                                 />
-                                <GlowbuzzerIcon
-                                    Icon={orderLocked ? LockClosedIcon : LockOpenIcon}
-                                    button
-                                    size={"1.2em"}
-                                    onClick={toggle_locked}
-                                    title={
-                                        orderLocked
-                                            ? "Change axis values with order"
-                                            : "Lock axis values"
-                                    }
-                                />
+                                <span
+                                    data-title="Lock/Unlock Order"
+                                    data-intro="By default changing the order will change the final rotation, but you can also choose to automatically adjust the values of each rotation to match the new order."
+                                >
+                                    <GlowbuzzerIcon
+                                        Icon={orderLocked ? LockClosedIcon : LockOpenIcon}
+                                        button
+                                        size={"1.2em"}
+                                        onClick={toggle_locked}
+                                        title={
+                                            orderLocked
+                                                ? "Change axis values with order"
+                                                : "Lock axis values"
+                                        }
+                                    />
+                                </span>
                             </Space>
                         </div>
                     </div>

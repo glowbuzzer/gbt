@@ -58,7 +58,12 @@ export const Matrix4Tile = () => {
         <div>
             <DockToolbar>
                 <DockToolbarButtonGroup>
-                    <ToolbarButtonTranspose onClick={transpose} />
+                    <span
+                        data-title="Transpose Matrix"
+                        data-intro="Click this button to transpose the matrix"
+                    >
+                        <ToolbarButtonTranspose onClick={transpose} />
+                    </span>
                     <ToolbarButtonNormalize onClick={normalize} />
                 </DockToolbarButtonGroup>
                 <ToolbarButtonsPrecision />

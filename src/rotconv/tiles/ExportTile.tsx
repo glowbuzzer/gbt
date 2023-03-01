@@ -65,7 +65,10 @@ export const ExportTile = () => {
     }
 
     return (
-        <StyledCopyPasteDiv>
+        <StyledCopyPasteDiv
+            data-title="Export"
+            data-intro="Here you can export your rotation in various formats"
+        >
             {contextHolder}
             <DockToolbar>
                 <ToolbarRadioAngularUnits
@@ -83,23 +86,30 @@ export const ExportTile = () => {
                     <TextArea value={copy} />
                 </div>
 
-                <Space>
-                    <Select
-                        dropdownMatchSelectWidth={false}
-                        size="small"
-                        options={format_options}
-                        value={format}
-                        onChange={setFormat}
-                    />
-                    <Select
-                        dropdownMatchSelectWidth={false}
-                        size="small"
-                        options={type_options}
-                        value={type}
-                        onChange={setType}
-                    />
-                    {type === TransformationInput.NONE && <Tag>{TransformationInput[input]}</Tag>}
-                </Space>
+                <span
+                    data-title="Choose Format and Type"
+                    data-intro="Choose the format and type of the rotation you want to export. If the type is set to Auto, the type of the last tile used for input will be used."
+                >
+                    <Space>
+                        <Select
+                            dropdownMatchSelectWidth={false}
+                            size="small"
+                            options={format_options}
+                            value={format}
+                            onChange={setFormat}
+                        />
+                        <Select
+                            dropdownMatchSelectWidth={false}
+                            size="small"
+                            options={type_options}
+                            value={type}
+                            onChange={setType}
+                        />
+                        {type === TransformationInput.NONE && (
+                            <Tag>{TransformationInput[input]}</Tag>
+                        )}
+                    </Space>
+                </span>
                 <Button size="small" onClick={do_copy}>
                     Copy
                 </Button>

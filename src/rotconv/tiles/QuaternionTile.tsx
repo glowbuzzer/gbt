@@ -66,13 +66,23 @@ export const QuaternionTile = () => {
     const cols = ["x", "y", "z", "w"]
 
     return (
-        <div>
+        <div
+            data-title="Input Tiles"
+            data-intro="Enter your values in each tile and other representations will update automatically"
+        >
             <DockToolbar>
                 <DockToolbarButtonGroup>
-                    <ToolbarButtonNormalize onClick={normalize} />
+                    <span data-title="Normalize" data-intro="Click this button to normalize inputs">
+                        <ToolbarButtonNormalize onClick={normalize} />
+                    </span>
                     <GlowbuzzerIcon Icon={NegateIcon} button onClick={negate} title="Negate" />
                 </DockToolbarButtonGroup>
-                <ToolbarButtonsPrecision />
+                <span
+                    data-title="Adjust Precision"
+                    data-intro="Adjust the precision of your inputs and outputs in each tile"
+                >
+                    <ToolbarButtonsPrecision />
+                </span>
             </DockToolbar>
             <StyledTile>
                 <div className="input-wrapper">
