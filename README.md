@@ -10,4 +10,6 @@ The list of tools included:
 * **3D rotation converter** - convert between and visualise the different 3D rotation formats: Quaternions, Euler angles, Rotation matrices, Axis-angle etc.
 * **DH parameter visualiser** - visualise the Denavit-Hartenberg parameters for arbitrary kinematics chains containing revolute, prismatic or fixed links and explore their kinematics.
 
+To see the tools in action, go to [tools.glowbuzzer.com](https://tools.glowbuzzer/com).
+
 For more information on our core product, the web-stack machine control, go to [glowbuzzer.com](https://www.glowbuzzer.com).
