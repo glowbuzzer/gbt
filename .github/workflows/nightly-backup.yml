@@ -1,0 +1,44 @@
+name: Backup to S3
+
+on:
+    schedule:
+        - cron: '0 0 * * *'  # Every day at midnight
+
+jobs:
+    backup:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: eu-west-1
+
+            - name: Download Last Commit Hash
+              continue-on-error: true
+              run: aws s3 cp s3://backup.glowbuzzer.com/${{ github.repository }}/last_commit_hash.txt last_commit_hash.txt || echo "0" > last_commit_hash.txt
+
+            - name: Clone Repository
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: git clone --mirror https://${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+
+            - name: Get Latest Commit Hash
+              run: echo "CURRENT_HASH=$(git --git-dir=$(basename "${{ github.repository }}").git rev-parse HEAD)" >> $GITHUB_ENV
+
+            - name: Check for Changes
+              id: compare
+              run: |
+                  if [[ $(cat last_commit_hash.txt) != "${{ env.CURRENT_HASH }}" ]]; then
+                    echo "REQUIRE_BACKUP=true" >> $GITHUB_ENV
+                  fi
+
+            - name: Backup if Changed
+              if: env.REQUIRE_BACKUP == 'true'
+              run: |
+                  tar czf repository_backup.tar.gz $(basename "${{ github.repository }}").git
+                  aws s3 cp repository_backup.tar.gz s3://backup.glowbuzzer.com/${{ github.repository }}/backup.tar.gz
+                  echo "${{ env.CURRENT_HASH }}" > last_commit_hash.txt
+                  aws s3 cp last_commit_hash.txt s3://backup.glowbuzzer.com/${{ github.repository }}/last_commit_hash.txt
